@@ -711,7 +711,7 @@ function rListaCrear() {
   ).join('');
 
   // Products — checkbox list
-  const prods = cats[listaSelectedCat] || [];
+  const prods = (cats[listaSelectedCat] || []).slice().sort((a,b)=>a.localeCompare(b,'es'));
   const prodEl = document.getElementById('lista-productos');
   if (!prods.length) {
     prodEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--slate-light);font-size:13px">No hay productos en esta categoría</div>';
