@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mesa. — Menú del hogar</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FAF7F2;--ink:#1A1814;--sage:#5C7A5F;--sage-light:#EBF0EB;--sage-mid:#C4D4C5;--sage-dark:#3D5C40;
+  --terracotta:#C4614A;--amber:#C49A3C;--amber-light:#F7F0E0;--amber-mid:#EFD48A;
+  --slate:#4A5568;--slate-light:#718096;--border:#E2DDD6;
+  --white:#FFFFFF;--shadow:0 2px 20px rgba(26,24,20,0.08);--shadow-lg:0 8px 40px rgba(26,24,20,0.14);
+  --radius:12px;--radius-lg:20px;--radius-xl:28px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5}
+button{font-family:'DM Sans',sans-serif;cursor:pointer}
+input,select,textarea{font-family:'DM Sans',sans-serif}
+
+/* ── TOP BAR ── */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
+.logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);letter-spacing:-0.3px;user-select:none}
+.logo em{color:var(--sage);font-style:normal}
+.nav-tabs{display:flex;gap:2px;background:var(--cream);border-radius:12px;padding:4px;border:1px solid var(--border)}
+.nav-tab{padding:7px 18px;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--slate);transition:all .18s;white-space:nowrap}
+.nav-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
+.nav-tab:hover:not(.active){color:var(--ink)}
+
+/* ── VIEWS ── */
+.view{display:none;min-height:calc(100vh - 58px)}
+.view.active{display:block}
+
+/* ── SHARED week controls ── */
+.week-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.week-bar-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink)}
+.week-bar-title small{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;color:var(--slate);margin-left:10px}
+.week-controls{display:flex;align-items:center;gap:10px}
+.week-lbl{font-size:13px;font-weight:500;color:var(--slate);min-width:190px;text-align:center}
+.wk-btn{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--slate);transition:all .15s}
+.wk-btn:hover{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.hoy-btn{padding:0 14px;height:36px;border:1px solid var(--border);border-radius:9px;background:var(--white);font-size:12px;font-weight:600;color:var(--slate);transition:all .15s;letter-spacing:.04em;text-transform:uppercase}
+.hoy-btn:hover{border-color:var(--sage);color:var(--sage)}
+
+/* ── SHARED day column ── */
+.day-col{background:var(--white);border-radius:var(--radius);border:1.5px solid var(--border);overflow:hidden;transition:box-shadow .2s}
+.day-col:hover{box-shadow:var(--shadow)}
+.day-col.is-today{border-color:var(--sage)}
+.day-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between}
+.day-name-sm{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--slate-light)}
+.day-num-lg{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);line-height:1.1;margin-top:1px}
+.is-today .day-num-lg{color:var(--sage)}
+.today-badge{background:var(--sage);color:var(--white);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:.05em;margin-top:4px}
+
+/* ── SHARED cat chips ── */
+.chip-POLLO{background:#EAF0EB;color:#2F5933}.chip-CARNE{background:#F5EAEA;color:#7A2828}
+.chip-CERDO{background:#F5EAF2;color:#6E2860}.chip-SANDWICH{background:#EAF0F5;color:#1E4E70}
+.chip-MARISCOS{background:#E8F4F4;color:#155858}.chip-OTROS{background:#EEE8F5;color:#4A2E7A}
+.chip-SOPA{background:#E8F5EA;color:#1E5830}.chip-ENSALADAS{background:#F4F5E8;color:#585820}
+.chip-PASTA{background:#F5EDE8;color:#7A3818}
+
+/* ══ PLANNER ══ */
+#view-planner{padding:28px}
+.week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.meal-block{padding:14px 16px;border-bottom:1px solid var(--border)}
+.meal-block:last-child{border-bottom:none}
+.meal-lbl-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.meal-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.meal-lbl.alm{color:var(--sage)}.meal-lbl.cena{color:var(--terracotta)}
+.field-lbl{font-size:10px;color:var(--slate-light);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.sel-wrap{position:relative;margin-bottom:6px}
+.sel-wrap select{width:100%;padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink);background:var(--cream);appearance:none;transition:border-color .15s}
+.sel-wrap select:focus{outline:none;border-color:var(--sage);background:var(--white)}
+.sel-wrap::after{content:'▾';position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--slate-light);pointer-events:none}
+.link-area{min-height:20px;margin-top:4px}
+.rpill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;text-decoration:none;padding:4px 10px;border-radius:7px;transition:all .15s}
+.rpill.green{color:var(--sage-dark);background:var(--sage-light)}.rpill.green:hover{background:var(--sage-mid)}
+.rpill.amber{color:#7A5C10;background:var(--amber-light)}.rpill.amber:hover{background:var(--amber-mid)}
+.no-recipe{font-size:11px;color:#C0B8AE;font-style:italic}
+.acomp-divider{border:none;border-top:1px dashed var(--border);margin:10px 0}
+
+/* ══ MENU VIEW ══ */
+#view-menu{padding:0}
+.menu-subtabs-bar{background:var(--white);border-bottom:1px solid var(--border);display:flex;padding:0 28px}
+.menu-subtab{padding:14px 20px;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--slate);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .18s;margin-bottom:-1px}
+.menu-subtab.active{color:var(--ink);border-bottom-color:var(--sage)}
+.menu-subtab:hover:not(.active){color:var(--ink)}
+.menu-subview{display:none;padding:28px}
+.menu-subview.active{display:block}
+
+/* Día sub-view */
+.dia-hero{background:var(--ink);padding:32px 28px 24px;margin:-28px -28px 28px}
+.dia-meta{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:6px}
+.dia-fecha{font-family:'DM Serif Display',serif;font-size:32px;color:var(--white);line-height:1}
+.dia-nombre{font-size:14px;color:rgba(255,255,255,.55);margin-top:4px}
+.dia-nav{display:flex;gap:5px;padding:12px 16px;background:var(--white);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;margin:0 -28px 28px}
+.dia-nav::-webkit-scrollbar{display:none}
+.dia-pill{flex:1;padding:7px 4px;border-radius:14px;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--slate);transition:all .18s;text-align:center;line-height:1.2}
+.dia-pill.active{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.dia-pill.is-today{border-color:var(--sage)}
+.dia-cards{display:flex;flex-direction:column;gap:16px;max-width:520px}
+.dia-card{background:var(--white);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
+.dia-card-top{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dia-card-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.dia-card-lbl.alm{color:var(--sage)}.dia-card-lbl.cena{color:var(--terracotta)}
+.dia-card-time{font-size:12px;color:var(--slate-light)}
+.dia-card-body{padding:18px 20px}
+.dia-dish{font-family:'DM Serif Display',serif;font-size:22px;line-height:1.25;color:var(--ink);margin:6px 0 12px}
+.dia-dish.empty{font-family:'DM Sans',sans-serif;font-size:14px;color:#C0B8AE;font-style:italic;margin:6px 0 0}
+.dia-acomp-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-light);margin-bottom:4px}
+.dia-acomp-val{font-size:14px;color:var(--ink);margin-bottom:12px}
+.dia-links{display:flex;flex-wrap:wrap;gap:8px}
+.dia-link{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:11px;font-size:13px;font-weight:500;text-decoration:none;transition:all .15s}
+.dia-link.plato{background:var(--sage-light);color:var(--sage-dark)}.dia-link.plato:hover{background:var(--sage-mid)}
+.dia-link.acomp{background:var(--amber-light);color:#7A5C10}.dia-link.acomp:hover{background:var(--amber-mid)}
+
+/* Semanal sub-view */
+.semanal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.semanal-meal{padding:12px 14px;border-bottom:1px solid var(--border)}
+.semanal-meal:last-child{border-bottom:none}
+.semanal-mlbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.semanal-mlbl.alm{color:var(--sage)}.semanal-mlbl.cena{color:var(--terracotta)}
+.semanal-dish{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3;margin:4px 0 3px}
+.semanal-dish.empty{color:#C0B8AE;font-style:italic;font-weight:400}
+.semanal-acomp{font-size:11px;color:var(--slate-light);margin-bottom:4px}
+.semanal-links{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.slink{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;text-decoration:none;padding:3px 8px;border-radius:6px;transition:all .15s}
+.slink.plato{background:var(--sage-light);color:var(--sage-dark)}.slink.plato:hover{background:var(--sage-mid)}
+.slink.acomp{background:var(--amber-light);color:#7A5C10}.slink.acomp:hover{background:var(--amber-mid)}
+
+/* ══ RECIPES ══ */
+#view-recipes{padding:28px;max-width:900px}
+.rec-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--ink);margin-bottom:4px}
+.rec-sub{font-size:13px;color:var(--slate);margin-bottom:28px}
+.cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.cat-tab{padding:7px 16px;border-radius:22px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.cat-tab:hover{border-color:var(--ink)}.cat-tab.active{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.rec-panel{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden}
+.rec-panel-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.add-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;background:var(--ink);color:var(--white);border:none;font-size:13px;font-weight:500;transition:all .15s}
+.add-btn:hover{background:var(--sage-dark)}
+.rec-list{list-style:none}
+.rec-item{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;border-bottom:1px solid var(--border);transition:background .12s;gap:12px}
+.rec-item:last-child{border-bottom:none}.rec-item:hover{background:var(--cream)}
+.rec-item-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.rec-name{font-size:14px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot-green{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0}
+.dot-gray{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0}
+.rec-link-prev{font-size:11px;color:var(--sage);text-decoration:none;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.rec-actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.icon-btn:hover{background:var(--cream)}.icon-btn.del:hover{background:#FEE;border-color:#FCC;color:#C00}
+.empty-list{padding:40px 24px;text-align:center;color:var(--slate-light);font-size:14px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,24,20,.45);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:var(--radius-xl);padding:32px;width:100%;max-width:440px;box-shadow:var(--shadow-lg);transform:translateY(16px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:20px;color:var(--ink)}
+.form-field{margin-bottom:16px}
+.form-lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);margin-bottom:6px;display:block}
+.form-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--ink);background:var(--cream);transition:border-color .15s}
+.form-input:focus{outline:none;border-color:var(--sage);background:var(--white)}
+.form-hint{font-size:11px;color:var(--slate-light);margin-top:4px}
+.modal-actions{display:flex;gap:10px;margin-top:24px}
+.btn-cancel{flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-size:14px;font-weight:500;color:var(--slate);transition:all .15s}
+.btn-cancel:hover{border-color:var(--ink);color:var(--ink)}
+.btn-save{flex:2;padding:11px;border-radius:10px;border:none;background:var(--ink);color:var(--white);font-size:14px;font-weight:600;transition:all .15s}
+.btn-save:hover{background:var(--sage-dark)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--white);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── MOBILE ── */
+@media(max-width:900px){
+  .top-bar{padding:0 12px;gap:8px}
+  .nav-tab{padding:6px 10px;font-size:12px}
+  .logo{font-size:18px}
+
+  /* Planner */
+  #view-planner>div{padding:16px}
+  .week-bar{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .week-bar-title{font-size:22px}
+  .week-controls{width:100%;justify-content:space-between}
+  .week-lbl{min-width:0;flex:1;text-align:center;font-size:12px}
+
+  /* Weekly grids: 1 column, days stacked */
+  .week-grid,.semanal-grid{grid-template-columns:1fr;gap:10px}
+
+  /* Each day card: header + two meal columns side by side */
+  .day-col{display:grid;grid-template-columns:56px 1fr 1fr;grid-template-rows:auto}
+  .day-head{grid-column:1;grid-row:1/3;border-right:1px solid var(--border);border-bottom:none;flex-direction:column;justify-content:center;align-items:center;padding:12px 8px;gap:2px}
+  .today-badge{font-size:9px;padding:2px 5px}
+  .meal-block{border-bottom:none;padding:10px 12px}
+  .meal-block:nth-child(2){grid-column:2;grid-row:1;border-right:1px solid var(--border)}
+  .meal-block:nth-child(3){grid-column:3;grid-row:1}
+
+
+
+  /* Semanal read-only: same layout */
+  .semanal-meal{padding:10px 12px}
+
+  /* Menu / Día */
+  .menu-subview{padding:16px}
+  .dia-hero{margin:-16px -16px 16px;padding:24px 16px 18px}
+  .dia-fecha{font-size:26px}
+  .dia-nav{margin:0 -16px 16px;padding:12px 16px}
+  .dia-cards{max-width:100%}
+  .dia-card-body{padding:14px 16px}
+  .dia-dish{font-size:18px}
+
+  /* Menu / Semanal */
+  #subtab-semanal{padding:16px}
+  #subtab-semanal .week-bar{flex-direction:column;align-items:flex-start;gap:10px}
+  .semanal-grid{grid-template-columns:1fr}
+  /* In semanal read-only, show alm+cena side by side within each day */
+  #sem-grid .day-col{display:grid;grid-template-columns:56px 1fr 1fr;grid-template-rows:auto}
+  #sem-grid .day-head{grid-column:1;grid-row:1;border-right:1px solid var(--border);border-bottom:none;flex-direction:column;justify-content:center;align-items:center;padding:12px 8px}
+  #sem-grid .semanal-meal:nth-child(2){grid-column:2;grid-row:1;border-right:1px solid var(--border);border-bottom:none}
+  #sem-grid .semanal-meal:nth-child(3){grid-column:3;grid-row:1;border-bottom:none}
+
+  /* Recipes */
+  #view-recipes>div{padding:16px}
+  .rec-panel-head{flex-direction:column;align-items:flex-start;gap:10px}
+  .add-btn{width:100%;justify-content:center}
+  .cat-tabs{gap:6px}
+  .cat-tab{padding:6px 12px;font-size:11px}
+
+  /* Modal */
+  .modal{margin:16px;padding:24px}
+}
+.pin-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:background .15s;margin-left:8px}
+.pin-btn:hover{background:var(--cream)}
+
+/* ── LISTA DE COMPRAS ── */
+.lista-store-btn{padding:7px 14px;border-radius:22px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.lista-store-btn.active{background:var(--ink);color:var(--white);border-color:var(--ink)}
+.prod-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:22px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--ink);transition:all .15s;white-space:nowrap}
+.prod-chip:hover{border-color:var(--sage);color:var(--sage)}
+.prod-chip.selected{background:var(--sage);color:var(--white);border-color:var(--sage)}
+.lista-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--white);border-radius:10px;border:1px solid var(--border)}
+.lista-item.comprado{opacity:.5;text-decoration:line-through}
+.lista-item input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--sage)}
+.lista-item-name{flex:1;font-size:14px;color:var(--ink)}
+.lista-item-cat{font-size:11px;color:var(--slate-light)}
+.lista-item-del{background:none;border:none;color:#C0B8AE;cursor:pointer;font-size:16px;padding:0 4px;transition:color .15s}
+.lista-item-del:hover{color:var(--terracotta)}
+.historial-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.historial-card-head{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
+.historial-card-head:hover{background:var(--cream)}
+.historial-card-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s}
+.historial-card-body.open{max-height:1000px;padding:12px 16px}
+.activa-cat-group{margin-bottom:16px}
+.activa-cat-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-light);margin-bottom:8px}
+.progreso-bar{height:4px;background:var(--border);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.progreso-fill{height:100%;background:var(--sage);border-radius:4px;transition:width .3s}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">mesa<em>.</em></div>
+  <div class="nav-tabs">
+    <button class="nav-tab admin-only" data-view="planner" onclick="switchView('planner',this)">📋 Planificar</button>
+    <button class="nav-tab active" data-view="menu" onclick="switchView('menu',this)">🍽️ Menú</button>
+    <button class="nav-tab" data-view="lista" onclick="switchView('lista',this)">🛒 Lista</button>
+    <button class="nav-tab admin-only" data-view="recipes" onclick="switchView('recipes',this)">🥘 Recetas</button>
+  </div>
+  <button class="pin-btn" id="pin-btn" onclick="isAdmin?logout():showPinModal()" title="Acceso admin">🔐</button>
+</div>
+
+<!-- PLANNER -->
+<div id="view-planner" class="view active">
+  <div style="padding:28px">
+    <div class="week-bar">
+      <div class="week-bar-title">Menú semanal <small id="pl-month"></small></div>
+      <div class="week-controls">
+        <button class="wk-btn" onclick="plShift(-1)">←</button>
+        <span class="week-lbl" id="pl-lbl"></span>
+        <button class="wk-btn" onclick="plShift(1)">→</button>
+        <button class="hoy-btn" onclick="plToday()">Hoy</button>
+      </div>
+    </div>
+    <div class="week-grid" id="pl-grid"></div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div id="view-menu" class="view">
+  <div class="menu-subtabs-bar">
+    <button class="menu-subtab active" onclick="switchSubtab('dia',this)">📅 Día</button>
+    <button class="menu-subtab" onclick="switchSubtab('semanal',this)">📆 Semanal</button>
+  </div>
+
+  <div id="subtab-dia" class="menu-subview active">
+    <div class="dia-hero">
+      <div class="dia-meta">Menú del hogar</div>
+      <div class="dia-fecha" id="dia-fecha"></div>
+      <div class="dia-nombre" id="dia-nombre"></div>
+    </div>
+    <div class="dia-nav" id="dia-nav"></div>
+    <div class="dia-cards" id="dia-cards"></div>
+  </div>
+
+  <div id="subtab-semanal" class="menu-subview">
+    <div class="week-bar">
+      <div class="week-bar-title">Vista semanal <small id="sem-month"></small></div>
+      <div class="week-controls">
+        <button class="wk-btn" onclick="semShift(-1)">←</button>
+        <span class="week-lbl" id="sem-lbl"></span>
+        <button class="wk-btn" onclick="semShift(1)">→</button>
+        <button class="hoy-btn" onclick="semToday()">Hoy</button>
+      </div>
+    </div>
+    <div class="semanal-grid" id="sem-grid"></div>
+  </div>
+</div>
+
+<!-- RECIPES -->
+<div id="view-recipes" class="view">
+  <div style="padding:28px;max-width:900px">
+    <div class="rec-title">Gestión de recetas</div>
+    <div class="rec-sub">Agregá, editá o eliminá platos. Los cambios se reflejan automáticamente en el planificador.</div>
+    <div class="cat-tabs" id="rec-cat-tabs"></div>
+    <div class="rec-panel">
+      <div class="rec-panel-head">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="rp-chip" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px"></span>
+          <span id="rp-count" style="font-size:13px;color:var(--slate-light)"></span>
+        </div>
+        <button class="add-btn" onclick="openAddModal()">＋ Agregar plato</button>
+      </div>
+      <ul class="rec-list" id="rec-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeMOIfBg(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Agregar plato</div>
+    <div class="form-field">
+      <label class="form-lbl">Nombre del plato</label>
+      <input class="form-input" id="modal-name" type="text" placeholder="Ej: Pollo a la mostaza con papas">
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Link de receta <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <input class="form-input" id="modal-link" type="url" placeholder="https://pinterest.com/...">
+      <div class="form-hint">Pegá el link de Pinterest, TikTok o Instagram</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeMO()">Cancelar</button>
+      <button class="btn-save" onclick="saveMO()">Guardar plato</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- CATEGORIA FULLSCREEN MODAL -->
+<div id="cat-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(26,24,20,.45);backdrop-filter:blur(2px)" onclick="if(event.target===this)closeCatDropdown()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--white);border-radius:20px 20px 0 0;max-height:80vh;display:flex;flex-direction:column">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'DM Serif Display',serif;font-size:18px">Seleccioná una categoría</div>
+      <button onclick="closeCatDropdown()" style="background:none;border:none;font-size:20px;color:var(--slate);cursor:pointer;padding:4px">✕</button>
+    </div>
+    <div id="lista-cat-dropdown" style="overflow-y:auto;flex:1;padding:8px 0"></div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pin-overlay" onclick="closePinIfBg(event)">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-title">Acceso administrador</div>
+    <p style="font-size:13px;color:var(--slate);margin-bottom:20px">Ingresá el PIN para acceder al planificador y recetas.</p>
+    <div class="form-field">
+      <label class="form-lbl">PIN</label>
+      <input class="form-input" id="pin-input" type="password" maxlength="8" placeholder="••••" style="letter-spacing:4px;font-size:20px;text-align:center">
+      <div id="pin-error" style="display:none;color:#C4614A;font-size:12px;margin-top:6px">PIN incorrecto. Intentá de nuevo.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closePinModal()">Cancelar</button>
+      <button class="btn-save" onclick="submitPin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- LISTA DE COMPRAS -->
+<div id="view-lista" class="view">
+  <div class="menu-subtabs-bar">
+    <button class="menu-subtab active" onclick="switchListaTab('crear',this)">✏️ Crear lista</button>
+    <button class="menu-subtab" onclick="switchListaTab('activa',this)">🛒 Lista activa</button>
+    <button class="menu-subtab" onclick="switchListaTab('historial',this)">📋 Historial</button>
+  </div>
+
+  <!-- Crear lista -->
+  <div id="ltab-crear" class="menu-subview active" style="padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:24px">Nueva lista</div>
+        <div style="font-size:12px;color:var(--slate);margin-top:2px">Seleccioná la tienda, categoría y productos</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="lista-store-btn active" id="btn-super" onclick="setStore('SUPER',this)">🏪 Super</button>
+        <button class="lista-store-btn" id="btn-pricesmart" onclick="setStore('PRICESMART',this)">🏬 PriceSmart</button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div style="position:relative;margin-bottom:16px">
+      <input class="form-input" id="lista-search" type="text" placeholder="🔍 Buscar producto..." oninput="searchProductos(this.value)" style="padding-right:36px">
+      <div id="search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:var(--shadow)"></div>
+    </div>
+
+    <!-- Category button -> full screen modal -->
+    <div id="lista-cat-btn" onclick="toggleCatDropdown()"
+      style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--cream);cursor:pointer;font-size:14px;font-weight:500;color:var(--ink)">
+      <span id="lista-cat-label">Seleccioná una categoría</span>
+      <span style="font-size:11px;color:var(--slate-light)">▾</span>
+    </div>
+
+    <!-- Products list -->
+    <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;margin-top:12px" id="lista-productos-wrap">
+      <div id="lista-productos"></div>
+    </div>
+
+    <!-- Current items -->
+    <div id="lista-items-section" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600;color:var(--ink)">Productos seleccionados (<span id="lista-count">0</span>)</div>
+        <button onclick="clearLista()" style="font-size:11px;color:var(--terracotta);background:none;border:none;cursor:pointer;font-weight:500">Limpiar todo</button>
+      </div>
+      <ul id="lista-items" style="list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></ul>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="add-btn" style="flex:1;justify-content:center;padding:12px" onclick="guardarLista()">💾 Guardar y enviar lista</button>
+      </div>
+    </div>
+
+    <!-- Add product/category -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border)">
+      <div style="font-size:12px;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Agregar nuevo producto</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="icon-btn" style="width:auto;padding:0 12px;font-size:12px;font-weight:500" onclick="openAddProductoModal()">＋ Producto</button>
+        <button class="icon-btn" style="width:auto;padding:0 12px;font-size:12px;font-weight:500" onclick="openAddCatModal()">＋ Categoría</button>
+        <button class="icon-btn" style="width:auto;padding:0 12px;font-size:12px;font-weight:500;color:var(--sage-dark);border-color:var(--sage-mid)" onclick="document.getElementById('excel-import-input').click()">📥 Importar Excel</button>
+        <input type="file" id="excel-import-input" accept=".xlsx,.xls" style="display:none" onchange="importarExcel(this)">
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista activa -->
+  <div id="ltab-activa" class="menu-subview" style="padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="font-family:'DM Serif Display',serif;font-size:24px">Lista activa</div>
+      <div style="display:flex;gap:8px">
+        <button class="lista-store-btn active" id="abtn-super" onclick="setActivaStore('SUPER',this)">🏪 Super</button>
+        <button class="lista-store-btn" id="abtn-pricesmart" onclick="setActivaStore('PRICESMART',this)">🏬 PriceSmart</button>
+      </div>
+    </div>
+    <div id="activa-content"></div>
+  </div>
+
+  <!-- Historial -->
+  <div id="ltab-historial" class="menu-subview" style="padding:20px">
+    <div style="font-family:'DM Serif Display',serif;font-size:24px;margin-bottom:16px">Historial de listas</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="lista-store-btn active" id="hbtn-super" onclick="setHistorialStore('SUPER',this)">🏪 Super</button>
+      <button class="lista-store-btn" id="hbtn-pricesmart" onclick="setHistorialStore('PRICESMART',this)">🏬 PriceSmart</button>
+    </div>
+    <div id="historial-content"></div>
+  </div>
+</div>
+
+<!-- ADD PRODUCTO MODAL -->
+<div class="modal-overlay" id="addprod-overlay" onclick="if(event.target===this)closeAddProdModal()">
+  <div class="modal">
+    <div class="modal-title">Agregar producto</div>
+    <div class="form-field">
+      <label class="form-lbl">Tienda</label>
+      <div class="sel-wrap"><select id="prod-store"><option value="SUPER">Super</option><option value="PRICESMART">PriceSmart</option></select></div>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Categoría</label>
+      <div class="sel-wrap"><select id="prod-cat-sel"></select></div>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Nombre del producto</label>
+      <input class="form-input" id="prod-name" type="text" placeholder="Ej: Tomate cherry">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddProdModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveNewProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CATEGORIA MODAL -->
+<div class="modal-overlay" id="addcat-overlay" onclick="if(event.target===this)closeAddCatModal()">
+  <div class="modal">
+    <div class="modal-title">Agregar categoría</div>
+    <div class="form-field">
+      <label class="form-lbl">Tienda</label>
+      <div class="sel-wrap"><select id="cat-store"><option value="SUPER">Super</option><option value="PRICESMART">PriceSmart</option></select></div>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Nombre de la categoría</label>
+      <input class="form-input" id="cat-name" type="text" placeholder="Ej: Bebidas">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddCatModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveNewCat()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ CONSTANTS ═══
+const TODAY=new Date();
+const MN=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DN=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const DS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const CC={POLLO:{bg:'#EAF0EB',c:'#2F5933'},CARNE:{bg:'#F5EAEA',c:'#7A2828'},CERDO:{bg:'#F5EAF2',c:'#6E2860'},SANDWICH:{bg:'#EAF0F5',c:'#1E4E70'},MARISCOS:{bg:'#E8F4F4',c:'#155858'},OTROS:{bg:'#EEE8F5',c:'#4A2E7A'},SOPA:{bg:'#E8F5EA',c:'#1E5830'},ENSALADAS:{bg:'#F4F5E8',c:'#585820'},PASTA:{bg:'#F5EDE8',c:'#7A3818'}};
+
+const DC={
+  POLLO:[{n:'Bowl mexicano de pollo',l:''},{n:'Chaomin con pollo',l:''},{n:'Chiles rellenos de pollo',l:''},{n:'Enchiladas de pollo',l:''},{n:'Pinchos de pollo',l:''},{n:'Pollo a la plancha',l:''},{n:'Pollo con aderezo sesame con verduras',l:'https://www.pinterest.com/pin/454933999882680688/'},{n:'Pollo empanizado',l:''},{n:'Pollo encebollado',l:''},{n:'Pollo relleno con espinaca y queso',l:''},{n:'Pollo relleno de jamon y queso',l:''},{n:'Rollitos de repollo con pollo',l:''},{n:'Tacos de pollo',l:''},{n:'Wrap de lechuga con pollo',l:'https://www.pinterest.com/pin/7107311908430113/'},{n:'Bowl de pollo honey',l:'https://www.pinterest.com/pin/852798879480933694/'},{n:'Pollo enrollado con tocino',l:'https://www.instagram.com/reel/DVthvojkb6p/'},{n:'Flautas de pollo con guacamole',l:'https://www.instagram.com/reel/DX9qBdnReuf/'},{n:'Pesto chicken flat bread',l:'https://www.pinterest.com/pin/703756189180854/'},{n:'Pollo chipotle salad',l:'https://www.pinterest.com/pin/442126888441470514/'},{n:'Bowl de burrito de pollo',l:'https://www.pinterest.com/pin/791437334557110416/'},{n:'Pollo a la naranja',l:'https://www.tiktok.com/@_recetasfit/video/7474739031788571909'}],
+  CARNE:[{n:'Albondigas',l:''},{n:'Carne con brocoli y ajonjoli',l:'https://www.pinterest.com/pin/5066618330816176/'},{n:'Carne deshilachada con huevo',l:''},{n:'Carne encebollada',l:''},{n:'Carne molida con repollo',l:''},{n:'Carne molida con vegetales',l:''},{n:'Chile relleno con carne',l:''},{n:'Enchiladas de carne',l:''},{n:'Hamburguesa',l:''},{n:'Milanesa',l:''},{n:'Papas rellenas de carne molida',l:'https://www.tiktok.com/@armandococinando/video/7358562308781608225'},{n:'Quesadillas de lomo con queso',l:''},{n:'Salpicon',l:''},{n:'Tomate rellenos de carne molida',l:''},{n:'Tortitas de carne con queso y tomate',l:''},{n:'Carne Mongolian',l:''},{n:'Carne molida con camote y zuccini',l:'https://www.pinterest.com/pin/12103492743505067/'},{n:'Carne molida, camote, aguacate y queso cottage',l:'https://www.pinterest.com/pin/1118300151239305621/'},{n:'Big Mac tacos',l:'https://www.pinterest.com/pin/997477017470050788/'},{n:'Big Mac wrap',l:'https://www.pinterest.com/pin/713890978462210060/'},{n:'Taco bowl con papas',l:'https://www.pinterest.com/pin/974818281858501336/'},{n:'Rollitos de repollo con carne y champiñones',l:'https://www.tiktok.com/@yaidymakes_es/video/7564069667346664735'}],
+  CERDO:[{n:'Frijoles blancos con cerdo',l:''},{n:'Cerdo 2',l:''},{n:'Cerdo 3',l:''}],
+  PASTA:[{n:'Canelones de carne',l:''},{n:'Canelones de pollo',l:''},{n:'Canelones de queso con espinaca',l:''},{n:'Lasagna de carne',l:''},{n:'Lasagna de pollo',l:''},{n:'Pasta con brocoli y queso',l:''},{n:'Pasta con carne',l:''},{n:'Pasta con crema y parmesano',l:''},{n:'Pasta con pollo y brocoli',l:''},{n:'Pasta con pollo y hongos',l:''},{n:'Pasta con salchicha',l:''},{n:'Pasta con salsa de tomate',l:''},{n:'Pasta espinaca con hongos',l:''},{n:'Pasta con pollo, brocoli y queso crema',l:'https://www.pinterest.com/pin/454582156167416999/'}],
+  SANDWICH:[{n:'Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)',l:''},{n:'Panini de Atun',l:''},{n:'Wrap de pollo desmenuzado con aguacate',l:''},{n:'Panini de pollo',l:''},{n:'Wrap de ensalada cesar con pollo',l:''},{n:'Wrap de ensalada cesar con pollo empanizado',l:'https://www.tiktok.com/@armandococinando/video/7634685590834892054'},{n:'Sandwich de ensalada de aguacate con huevo',l:''},{n:'Wrap mexicano de pollo',l:''},{n:'Wrap de pollo al pesto',l:'https://www.pinterest.com/pin/2955556003095670/'},{n:'Pesto chicken flat bread',l:'https://www.pinterest.com/pin/2111131072258094/'},{n:'Big Mac tacos',l:'https://www.pinterest.com/pin/997477017470050788/'},{n:'Big Mac wrap',l:'https://www.pinterest.com/pin/713890978462210060/'},{n:'Pollo chipotle salad',l:'https://www.pinterest.com/pin/442126888441470514/'},{n:'Wrap de atun',l:'https://www.pinterest.com/pin/197314027416592027/'},{n:'Wrap de pollo con salsa de yogurt picante',l:'https://www.pinterest.com/pin/994028949000387319/'},{n:'Wrap de lechuga con aguacate y huevo',l:'https://www.pinterest.com/pin/1125968743107184/'},{n:'Philly cheesesteak',l:'https://www.tiktok.com/@owen.han/video/7372677167823490346'}],
+  MARISCOS:[{n:'Chile Lime shrimp bowl',l:''},{n:'Taco de pescado con ensalada de repollo',l:''},{n:'Tacos de camaron',l:''},{n:'Salmon',l:''},{n:'Camaron con brocoli',l:''},{n:'Camaron bowl con aguacate',l:'https://www.pinterest.com/marcoescolan/sandwich/'},{n:'Camaron con brocoli stir fry',l:'https://www.pinterest.com/pin/844002786454425225/'},{n:'Salmon con ensalada de papa',l:'https://www.pinterest.com/pin/567101778095994450/'}],
+  OTROS:[{n:'Barquitos de zucchini con tocino',l:''},{n:'Chilaquiles de pipian',l:''},{n:'Chilaquiles de tortilla',l:''},{n:'Coliflor en salsa blanca',l:''},{n:'Enchiladas de chilorio',l:''},{n:'Huevos en salsa blanca',l:''},{n:'Huevos rotos',l:''},{n:'Huevos rotos con tocino',l:''},{n:'Lasagna de zucchini',l:''},{n:'Pizzitas',l:''},{n:'Quesadillas de espinaca con huevo',l:''},{n:'Quesadillas de jamon y queso',l:''},{n:'Fritata de brocoli',l:''},{n:'Fritata de espinaca',l:''},{n:'Empanadas de platano con carne o pollo',l:'https://www.instagram.com/reels/C_YkgJUvieS/'},{n:'Tacos de coliflor',l:'https://www.tiktok.com/@plantyou/video/7386789277495037190'},{n:'Huevos estrellados con papa',l:'https://www.tiktok.com/@armandococinando/video/7363387631205387553'},{n:'Tostadas con huevo, aguacate y cebolla morada',l:'https://www.tiktok.com/@chewingismycardio/video/7543407580010335494'}],
+  SOPA:[{n:'Crema de brocoli',l:''},{n:'Sopa de tortilla con Pollo',l:''},{n:'Tomate con pollo',l:''},{n:'Zanahoria con coliflor',l:''}],
+  ENSALADAS:[{n:'Ensalada Cesar con pollo',l:''},{n:'Ensalada Cesar con pollo empanizado',l:''},{n:'Ensalada de aguacate con huevo',l:''},{n:'Ensalada de frijoles con cebolla morada',l:''},{n:'Ensalada de garbanzo con pepino y dill',l:'https://www.tiktok.com/@marialebricenos/video/7229025617163865370'},{n:'Ensalada de pepino, aguacate, tomate cherry y queso feta',l:'https://www.pinterest.com/pin/960603795509429726/'},{n:'Repollo morado con manzana',l:''},{n:'Ensalada mediterranea con pollo',l:'https://www.pinterest.com/pin/641974121917638198/'},{n:'Ensalada de garbanzos',l:''}],
+};
+const DA=[{n:'Arroz blanco',l:''},{n:'Arroz blanco japones',l:''},{n:'Arroz chino blanco',l:''},{n:'Arroz con elote',l:''},{n:'Arroz negro',l:''},{n:'Brocoli asado con parmesano',l:''},{n:'Casamiento',l:''},{n:'Chancletas',l:''},{n:'Coliflor empanizado',l:''},{n:'Coliflor en salsa blanca',l:''},{n:'Ejotes con huevo',l:''},{n:'Empanadas de Yuca con queso',l:''},{n:'Ensalada',l:''},{n:'Ensalada de pepino, aguacate, tomate cherry y queso feta',l:''},{n:'Ensalada de repollo morado con manzana',l:''},{n:'Frijoles',l:''},{n:'Frijoles molidos',l:''},{n:'Fritata de brocoli con queso',l:''},{n:'Fritata de espinaca',l:''},{n:'Orzo con tomate cherry',l:''},{n:'Papa entera horneada',l:''},{n:'Papa horneada',l:''},{n:'Papas baby horneadas',l:''},{n:'Papas capeadas',l:''},{n:'Papas con ejote',l:''},{n:'Papas con huevo',l:''},{n:'Papas fritas',l:''},{n:'Papas horneadas con zanahoria',l:''},{n:'Pure de papas',l:''},{n:'Pure de zanahoria',l:''},{n:'Tortitas de papa con queso',l:''},{n:'Wings de coliflor',l:''},{n:'Yuca frita',l:''},{n:'Yuca hervida',l:''},{n:'Zanahoria asada con mantequilla de ajo',l:'https://www.pinterest.com/pin/454582156150553694/'},{n:'Esparragos',l:''},{n:'Pasta de aguacate con huevo',l:'https://www.pinterest.com/pin/211174978954053/'},{n:'Camote fries',l:''}];
+
+// ═══ FIREBASE CONFIG ═══
+const FB_URL='https://menu-casa-8f003-default-rtdb.firebaseio.com';
+
+// ═══ STATE ═══
+let ST=defaultST();
+function defaultST(){const cats={};for(const[k,v]of Object.entries(DC))cats[k]=v.map(x=>({...x}));return{cats,acomps:DA.map(x=>({...x})),menu:{},pf:false};}
+
+async function loadFromFirebase(){
+  try{
+    const r=await fetch(FB_URL+'/state.json');
+    const data=await r.json();
+    if(data){
+      ST=data;
+      // Migrate: ensure acomp2 exists on all meal entries
+      for(const k of Object.keys(ST.menu||{})){
+        if(ST.menu[k].alm&&!ST.menu[k].alm.hasOwnProperty('acomp2'))ST.menu[k].alm.acomp2='';
+        if(ST.menu[k].cena&&!ST.menu[k].cena.hasOwnProperty('acomp2'))ST.menu[k].cena.acomp2='';
+      }
+    }
+  }catch(e){console.error('Firebase load error',e);}
+}
+
+async function saveST(){
+  try{
+    // Also keep local backup
+    try{localStorage.setItem('mesa_v4',JSON.stringify(ST));}catch(e){}
+    await fetch(FB_URL+'/state.json',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(ST)
+    });
+  }catch(e){console.error('Firebase save error',e);}
+}
+
+function loadST(){return ST;}
+
+
+
+// ═══ HELPERS ═══
+function dk(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function ed(){return{alm:{cat:'POLLO',plato:'',acomp:'',acomp2:''},cena:{cat:'POLLO',plato:'',acomp:'',acomp2:''}};}
+function gd(d){const k=dk(d);if(!ST.menu[k])ST.menu[k]=ed();const m=ST.menu[k];if(!m.alm.hasOwnProperty('acomp2'))m.alm.acomp2='';if(!m.cena.hasOwnProperty('acomp2'))m.cena.acomp2='';return m;}
+function mon(d){const c=new Date(d),day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));return c;}
+function pl(cat,name){if(!name||!cat)return'';const f=(ST.cats[cat]||[]).find(x=>x.n===name);return f?f.l:'';}
+function al(name){if(!name)return'';const f=ST.acomps.find(x=>x.n===name);return f?f.l:'';}
+function chip(cat,sm){const c=CC[cat]||{bg:'#eee',c:'#555'};const s=sm?'font-size:10px;padding:2px 8px':'font-size:12px;padding:4px 12px';return`<span style="background:${c.bg};color:${c.c};border-radius:20px;font-weight:600;${s};display:inline-block">${cat.charAt(0)+cat.slice(1).toLowerCase()}</span>`;}
+function wkRange(ws){const we=new Date(ws);we.setDate(we.getDate()+4);return`${DS[ws.getDay()]} ${ws.getDate()} — ${DS[we.getDay()]} ${we.getDate()}`;}
+function wkMonth(ws){const we=new Date(ws);we.setDate(we.getDate()+4);const m1=MN[ws.getMonth()],m2=MN[we.getMonth()];return m1===m2?`${m1} ${ws.getFullYear()}`:`${m1} / ${m2} ${ws.getFullYear()}`;}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+
+// ═══ LISTA DE COMPRAS DATA ═══
+const DEFAULT_LISTA_CATS = {
+  SUPER: {
+    'CARNES': ['Alitas de pollo','Pechugas de pollo','Piernas de pollo','Muslo piernas de pollo','Carne molida','Lomo','Lomo de cerdo','Chuletas'],
+    'LACTEOS Y HUEVOS': ['Yogurt Natural','Yogurt Griego Natural','Yogurt bebible','Queso Crema','Queso Cottage','Requesón','Crema','Huevos','Queso rallado','Queso mixto','Helado','Mantequilla President tarro'],
+    'FRUTAS Y VERDURAS': ['Lechuga','Ejote Francés','Chile Jalapeño Nacho','AJO Molido','Champiñón Entero'],
+    'ACEITES': ['Vinagre Blanco','Vinagre Balsámico','Granola'],
+    'CEREALES': ['Cereal'],
+    'GRANOS': ['Arroz Precocido','Frijol Negro','Mexcla Pancake & Waffle','Maíz Popcorn'],
+    'PAN Y TORTILLA': ['Pan Francés Bakery','Pan Trencita Bakery','Tostadas Enchiladas'],
+    'GALLETAS': ['Galletas'],
+    'SEMILLAS': ['Pasas'],
+    'SALSAS Y ADEREZOS': ['Ketchup','Mayonesa','Mostaza','Salsa Valentina Picante','Mermelada Fresa Valle Panchoy','Miel de Abeja Natural'],
+    'PASTAS': ['Pasta Caracolito'],
+    'CAFÉ': ['Café instantaneo Legal'],
+    'AZUCAR': ['Svetia'],
+    'LIMPIEZA': ['Bicarbonato de Sodio','Vanish color','Vanish blanco','Detergente Rinso','Esponja verde cuadrada'],
+    'HIGIENE PERSONAL': ['Shampoo Head & Shoulders Caída','Shampoo niños','Jabon cuerpo Lactolac'],
+    'DESECHABLES': ['Bolsas p/Basura Pequeña','Bolsas p/Basura Mediana','Bolsas p basura grande','Lavaplatos Selectos'],
+    'ENLATADOS': ['Sardina'],
+  },
+  PRICESMART: {
+    'CARNES': ['Filete de Pechuga Deshuesada','Carne Molida','Lomo Aguja','Jamón','Carne para deshilar','Carne para salpicon salomo','Chuleta ahumada','Carne para guisar','Alitas','Piernitas','Salchichas hotdog','Tocino'],
+    'MARISCOS': ['Camarones','Atun'],
+    'LACTEOS Y HUEVOS': ['Leche semidescremada','Leche deslactosada','Mantequilla en barra','Queso petacones','Queso amarillo','Queso Mozzarella','Palitos de queso'],
+    'FRUTAS Y VERDURAS': ['Chile Morron','Espárrago'],
+    'CAFÉ Y TE': ['Café molido','Te de manzanilla'],
+    'AZUCAR Y OTROS': ['Cremora'],
+    'BOQUITAS': ['Elotito'],
+    'ACEITES': ['Aceite Oliva','Aceite en spray','Aceite de aguacate','Vinagre de manzana'],
+    'SEMILLAS': ['Almendras'],
+    'HARINAS': ['Harina de almendras'],
+    'LIMPIEZA': ['Limpia vidrios','Desinfectante baños','Desinfectante piso','Cloro magia blanca','Detergente ropa'],
+    'DESECHABLES': ['Servilletas','Papel aluminio','Papel toalla','Papel higienico','Toallas humedas'],
+    'HIGIENE PERSONAL': ['Pasta dientes Marco','Pasta dientes Bamba'],
+  }
+};
+
+// ═══ LISTA STATE ═══
+let listaStore = 'SUPER';
+let listaActivaStore = 'SUPER';
+let listaHistorialStore = 'SUPER';
+let listaSelectedCat = '';
+let listaItems = []; // [{name, cat, store}]
+let listaSubtab = 'crear';
+let activaOpenCards = {}; // tracks which cards are expanded
+
+function getLCats(store) { return ST.listaCats?.[store] || DEFAULT_LISTA_CATS[store] || {}; }
+
+function initListaCats() {
+  if (!ST.listaCats) {
+    ST.listaCats = {
+      SUPER: JSON.parse(JSON.stringify(DEFAULT_LISTA_CATS.SUPER)),
+      PRICESMART: JSON.parse(JSON.stringify(DEFAULT_LISTA_CATS.PRICESMART))
+    };
+  }
+  if (!ST.listaHistorial) ST.listaHistorial = [];
+  if (!ST.listaActiva) ST.listaActiva = { SUPER: [], PRICESMART: [] };
+  // Migrate old format (single object) to array
+  for (const store of ['SUPER','PRICESMART']) {
+    if (ST.listaActiva[store] && !Array.isArray(ST.listaActiva[store])) {
+      ST.listaActiva[store] = ST.listaActiva[store] ? [ST.listaActiva[store]] : [];
+    }
+    if (!ST.listaActiva[store]) ST.listaActiva[store] = [];
+  }
+}
+
+// ═══ LISTA ROUTING ═══
+function switchListaTab(tab, btn) {
+  document.querySelectorAll('#view-lista .menu-subtab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#view-lista .menu-subview').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`ltab-${tab}`).classList.add('active');
+  listaSubtab = tab;
+  if (tab === 'crear') rListaCrear();
+  if (tab === 'activa') rListaActiva();
+  if (tab === 'historial') rListaHistorial();
+}
+
+function setStore(store, btn) {
+  listaStore = store;
+  document.querySelectorAll('#ltab-crear .lista-store-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  listaSelectedCat = '';
+  rListaCrear();
+}
+
+function setActivaStore(store, btn) {
+  listaActivaStore = store;
+  document.querySelectorAll('#ltab-activa .lista-store-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  rListaActiva();
+}
+
+function setHistorialStore(store, btn) {
+  listaHistorialStore = store;
+  document.querySelectorAll('#ltab-historial .lista-store-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  rListaHistorial();
+}
+
+// ═══ CREAR LISTA ═══
+function rListaCrear() {
+  initListaCats();
+  const cats = getLCats(listaStore);
+  const catNames = Object.keys(cats).sort();
+  if (!listaSelectedCat || !cats[listaSelectedCat]) listaSelectedCat = catNames[0] || '';
+
+  // Custom cat dropdown
+  const label = document.getElementById('lista-cat-label');
+  if(label) label.textContent = listaSelectedCat ? listaSelectedCat.charAt(0)+listaSelectedCat.slice(1).toLowerCase() : 'Seleccioná una categoría';
+  const dropdown = document.getElementById('lista-cat-dropdown');
+  if(dropdown) dropdown.innerHTML = catNames.map((c,i) =>
+    `<div onclick="selectListaCat('${c}')" class="${c===listaSelectedCat?'cat-opt-selected':''}"
+      style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;font-size:15px;cursor:pointer;border-bottom:${i<catNames.length-1?'1px solid var(--border)':'none'};background:${c===listaSelectedCat?'var(--sage-light)':'transparent'};color:${c===listaSelectedCat?'var(--sage-dark)':'var(--ink)'};font-weight:${c===listaSelectedCat?'600':'400'}">
+      <span>${c.charAt(0)+c.slice(1).toLowerCase()}</span>
+      ${c===listaSelectedCat?'<span style="color:var(--sage);font-weight:700">✓</span>':''}
+    </div>`
+  ).join('');
+
+  // Products — checkbox list
+  const prods = cats[listaSelectedCat] || [];
+  const prodEl = document.getElementById('lista-productos');
+  if (!prods.length) {
+    prodEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--slate-light);font-size:13px">No hay productos en esta categoría</div>';
+  } else {
+    prodEl.innerHTML = prods.map((p,i) => {
+      const sel = listaItems.some(x => x.name === p && x.store === listaStore);
+      return `<div onclick="toggleProducto('${p.replace(/'/g,"\'").replace(/"/g,'&quot;')}','${listaSelectedCat}')"
+        style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:${i<prods.length-1?'1px solid var(--border)':'none'};cursor:pointer;transition:background .12s;${sel?'background:var(--sage-light)':''}"
+        onmouseover="this.style.background=this.style.background||'var(--cream)'" onmouseout="if(!${sel})this.style.background=''">
+        <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${sel?'var(--sage)':'var(--border)'};background:${sel?'var(--sage)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">
+          ${sel?'<span style="color:white;font-size:13px;font-weight:700">✓</span>':''}
+        </div>
+        <span style="font-size:14px;color:${sel?'var(--sage-dark)':'var(--ink)'};font-weight:${sel?'500':'400'}">${p}</span>
+      </div>`;
+    }).join('');
+  }
+
+  rListaItemsPanel();
+}
+
+function toggleCatDropdown() {
+  document.getElementById('cat-modal').style.display = 'block';
+  // Scroll to selected
+  setTimeout(() => {
+    const sel = document.querySelector('#lista-cat-dropdown .cat-opt-selected');
+    if(sel) sel.scrollIntoView({block:'center'});
+  }, 50);
+}
+function closeCatDropdown() {
+  document.getElementById('cat-modal').style.display = 'none';
+}
+function selectListaCat(cat) {
+  listaSelectedCat = cat;
+  closeCatDropdown();
+  rListaCrear();
+}
+
+function toggleProducto(name, cat) {
+  const idx = listaItems.findIndex(i => i.name === name && i.store === listaStore);
+  if (idx >= 0) listaItems.splice(idx, 1);
+  else listaItems.push({ name, cat, store: listaStore });
+  rListaCrear();
+}
+
+function rListaItemsPanel() {
+  const items = listaItems.filter(i => i.store === listaStore);
+  const section = document.getElementById('lista-items-section');
+  section.style.display = items.length ? 'block' : 'none';
+  document.getElementById('lista-count').textContent = items.length;
+
+  const ul = document.getElementById('lista-items');
+  ul.innerHTML = items.map((item, i) => `
+    <li class="lista-item">
+      <span class="lista-item-name">${item.name}</span>
+      <span class="lista-item-cat">${item.cat}</span>
+      <button class="lista-item-del" onclick="removeListaItem(${i})">✕</button>
+    </li>`).join('');
+}
+
+function removeListaItem(idx) {
+  const storeItems = listaItems.filter(i => i.store === listaStore);
+  const item = storeItems[idx];
+  const globalIdx = listaItems.findIndex(i => i.name === item.name && i.store === item.store);
+  listaItems.splice(globalIdx, 1);
+  rListaCrear();
+}
+
+function clearLista() {
+  listaItems = listaItems.filter(i => i.store !== listaStore);
+  rListaCrear();
+}
+
+async function guardarLista() {
+  initListaCats();
+  const items = listaItems.filter(i => i.store === listaStore);
+  if (!items.length) { toast('Agregá al menos un producto'); return; }
+
+  const now = new Date();
+  const fecha = `${now.getDate()} de ${MN[now.getMonth()]} ${now.getFullYear()}`;
+  const hora = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  const lista = {
+    id: Date.now(),
+    store: listaStore,
+    fecha,
+    hora,
+    items: items.map(i => ({ ...i, comprado: false })),
+    completada: false
+  };
+
+  // Set as active list
+  if (!ST.listaActiva) ST.listaActiva = { SUPER: [], PRICESMART: [] };
+  // Migrate old format (single object) to array
+  for (const store of ['SUPER','PRICESMART']) {
+    if (ST.listaActiva[store] && !Array.isArray(ST.listaActiva[store])) {
+      ST.listaActiva[store] = ST.listaActiva[store] ? [ST.listaActiva[store]] : [];
+    }
+    if (!ST.listaActiva[store]) ST.listaActiva[store] = [];
+  }
+  ST.listaActiva[listaStore] = lista;
+
+  // Add to historial
+  if (!ST.listaHistorial) ST.listaHistorial = [];
+  ST.listaHistorial.unshift(lista);
+  if (ST.listaHistorial.length > 50) ST.listaHistorial = ST.listaHistorial.slice(0, 50);
+
+  // Clear current items for this store
+  listaItems = listaItems.filter(i => i.store !== listaStore);
+
+  await saveST();
+  toast(`Lista guardada ✓ — ${items.length} productos`);
+  rListaCrear();
+}
+
+// ═══ LISTA ACTIVA ═══
+function rListaActiva() {
+  initListaCats();
+  const listas = ST.listaActiva?.[listaActivaStore] || [];
+  const el = document.getElementById('activa-content');
+
+  if (!listas.length) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--slate-light);font-size:14px">No hay listas activas para ${listaActivaStore === 'SUPER' ? 'el Super' : 'PriceSmart'}.<br>Creá una desde la pestaña "Crear lista".</div>`;
+    return;
+  }
+
+  // Remember which cards were open before re-render
+  const wasOpen = {...activaOpenCards};
+  el.innerHTML = listas.map((lista, li) => {
+    const total = lista.items.length;
+    const comprados = lista.items.filter(i => i.comprado).length;
+    const pct = total ? Math.round(comprados / total * 100) : 0;
+    const byCat = {};
+    lista.items.forEach(item => {
+      if (!byCat[item.cat]) byCat[item.cat] = [];
+      byCat[item.cat].push(item);
+    });
+    return `
+    <div class="historial-card" style="margin-bottom:16px">
+      <div class="historial-card-head">
+        <div onclick="toggleActivaCard(${li})" style="flex:1;cursor:pointer">
+          <div style="font-size:14px;font-weight:500">${lista.fecha} — ${lista.hora}</div>
+          <div style="font-size:12px;color:var(--slate-light)">${comprados} de ${total} productos · ${pct}%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span onclick="toggleActivaCard(${li})" style="color:var(--slate-light);font-size:12px;cursor:pointer" id="acard-icon-${li}">▾</span>
+        </div>
+      </div>
+      <div class="historial-card-body" id="acard-body-${li}">
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--slate);margin-bottom:6px">
+            <span>${comprados} de ${total} comprados</span>
+            <span style="font-weight:600;color:var(--sage)">${pct}%</span>
+          </div>
+          <div class="progreso-bar"><div class="progreso-fill" style="width:${pct}%"></div></div>
+        </div>
+        ${Object.entries(byCat).map(([cat, items]) => `
+          <div class="activa-cat-group">
+            <div class="activa-cat-title">${cat}</div>
+            ${items.map(item => `
+              <div class="lista-item${item.comprado?' comprado':''}" style="margin-bottom:6px">
+                <input type="checkbox" ${item.comprado?'checked':''} onchange="toggleComprado('${listaActivaStore}',${li},${lista.items.indexOf(item)},this.checked)">
+                <span class="lista-item-name">${item.name}</span>
+              </div>`).join('')}
+          </div>`).join('')}
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <button onclick="completarLista('${listaActivaStore}',${li})"
+            style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--ink);color:var(--white);font-size:14px;font-weight:600;cursor:pointer;font-family:DM Sans,sans-serif;transition:background .15s"
+            onmouseover="this.style.background='var(--sage-dark)'" onmouseout="this.style.background='var(--ink)'">
+            ✓ Completar lista
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Restore open cards after re-render
+  listas.forEach((_, li) => {
+    if (wasOpen[li]) {
+      const body = document.getElementById(`acard-body-${li}`);
+      const icon = document.getElementById(`acard-icon-${li}`);
+      if (body) { body.classList.add('open'); activaOpenCards[li] = true; }
+      if (icon) icon.textContent = '▴';
+    }
+  });
+}
+
+function toggleActivaCard(i) {
+  const body = document.getElementById(`acard-body-${i}`);
+  const icon = document.getElementById(`acard-icon-${i}`);
+  body.classList.toggle('open');
+  const isOpen = body.classList.contains('open');
+  icon.textContent = isOpen ? '▴' : '▾';
+  activaOpenCards[i] = isOpen;
+}
+
+async function toggleComprado(store, li, idx, checked) {
+  if (!Array.isArray(ST.listaActiva?.[store])) return;
+  ST.listaActiva[store][li].items[idx].comprado = checked;
+  await saveST();
+  rListaActiva();
+}
+
+async function completarLista(store, li) {
+  const lista = ST.listaActiva[store][li];
+  if (!lista) return;
+
+  const comprados = lista.items.filter(i => i.comprado);
+  const pendientes = lista.items.filter(i => !i.comprado);
+
+  // Move to historial (only purchased items)
+  const listaHistorial = {
+    ...lista,
+    items: comprados,
+    completada: true
+  };
+  if (!ST.listaHistorial) ST.listaHistorial = [];
+  // Update existing historial entry or add new
+  const hIdx = ST.listaHistorial.findIndex(l => l.id === lista.id);
+  if (hIdx >= 0) ST.listaHistorial[hIdx] = listaHistorial;
+  else ST.listaHistorial.unshift(listaHistorial);
+
+  // Remove from active
+  ST.listaActiva[store].splice(li, 1);
+
+  // If there are pending items, create new active list
+  if (pendientes.length) {
+    const now = new Date();
+    const fecha = `${now.getDate()} de ${MN[now.getMonth()]} ${now.getFullYear()}`;
+    const hora = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const pendientesList = {
+      id: Date.now(),
+      store,
+      fecha,
+      hora,
+      items: pendientes.map(i => ({...i, comprado: false})),
+      completada: false,
+      esPendiente: true
+    };
+    ST.listaActiva[store].unshift(pendientesList);
+    toast(`Lista completada — ${pendientes.length} productos pendientes en nueva lista`);
+  } else {
+    toast('¡Lista completada! 🎉');
+  }
+
+  await saveST();
+  rListaActiva();
+}
+
+// ═══ HISTORIAL ═══
+function rListaHistorial() {
+  initListaCats();
+  const listas = (ST.listaHistorial || []).filter(l => l.store === listaHistorialStore);
+  const el = document.getElementById('historial-content');
+
+  if (!listas.length) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--slate-light);font-size:14px">No hay listas guardadas aún.</div>`;
+    return;
+  }
+
+  el.innerHTML = listas.map((lista, i) => {
+    const total = lista.items.length;
+    const comprados = lista.items.filter(x => x.comprado).length;
+    return `
+    <div class="historial-card">
+      <div class="historial-card-head">
+        <div onclick="toggleHistorialCard(${i})" style="flex:1;cursor:pointer">
+          <div style="font-size:14px;font-weight:500">${lista.fecha} — ${lista.hora}</div>
+          <div style="font-size:12px;color:var(--slate-light)">${total} productos · ${comprados} comprados</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span onclick="toggleHistorialCard(${i})" style="color:var(--slate-light);font-size:12px;cursor:pointer" id="hcard-icon-${i}">▾</span>
+          <button onclick="eliminarHistorial(${lista.id})" style="background:none;border:none;cursor:pointer;color:#C0B8AE;font-size:18px;padding:0 4px;line-height:1;transition:color .15s" onmouseover="this.style.color='var(--terracotta)'" onmouseout="this.style.color='#C0B8AE'" title="Eliminar lista">🗑</button>
+        </div>
+      </div>
+      <div class="historial-card-body" id="hcard-body-${i}">
+        ${lista.items.map(item => `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+            <span style="${item.comprado ? 'text-decoration:line-through;color:var(--slate-light)' : ''};font-size:13px">${item.name}</span>
+            <span style="font-size:11px;color:var(--slate-light);margin-left:auto">${item.cat}</span>
+            ${item.comprado ? '<span style="color:var(--sage);font-size:12px">✓</span>' : ''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistorialCard(i) {
+  const body = document.getElementById(`hcard-body-${i}`);
+  const icon = document.getElementById(`hcard-icon-${i}`);
+  body.classList.toggle('open');
+  icon.textContent = body.classList.contains('open') ? '▴' : '▾';
+}
+
+async function eliminarHistorial(id) {
+  if (!confirm('¿Eliminar esta lista del historial?')) return;
+  ST.listaHistorial = (ST.listaHistorial || []).filter(l => l.id !== id);
+  await saveST();
+  toast('Lista eliminada');
+  rListaHistorial();
+}
+
+// ═══ SEARCH ═══
+function searchProductos(q) {
+  const res = document.getElementById('search-results');
+  if (!q.trim()) { res.style.display = 'none'; return; }
+  initListaCats();
+  const matches = [];
+  // Only search in current store
+  const cats = ST.listaCats?.[listaStore] || {};
+  for (const [cat, prods] of Object.entries(cats)) {
+    prods.filter(p => p.toLowerCase().includes(q.toLowerCase())).forEach(p => {
+      matches.push({ name: p, cat, store: listaStore });
+    });
+  }
+  if (!matches.length) { res.style.display = 'none'; return; }
+  res.style.display = 'block';
+  res.innerHTML = matches.slice(0, 10).map(m => `
+    <div onclick="addFromSearch('${m.name.replace(/'/g,"\'")}','${m.cat}','${m.store}')"
+         style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;justify-content:space-between;transition:background .12s"
+         onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background=''">
+      <span>${m.name}</span>
+      <span style="font-size:11px;color:var(--slate-light)">${m.cat}</span>
+    </div>`).join('');
+}
+
+function addFromSearch(name, cat, store) {
+  document.getElementById('lista-search').value = '';
+  document.getElementById('search-results').style.display = 'none';
+  listaStore = store;
+  // Update store buttons
+  document.getElementById('btn-super').classList.toggle('active', store === 'SUPER');
+  document.getElementById('btn-pricesmart').classList.toggle('active', store === 'PRICESMART');
+  if (!listaItems.some(i => i.name === name && i.store === store)) {
+    listaItems.push({ name, cat, store });
+  }
+  listaSelectedCat = cat;
+  rListaCrear();
+  toast(`${name} agregado ✓`);
+}
+
+// ═══ ADD PRODUCTO/CAT MODALS ═══
+function openAddProductoModal() {
+  initListaCats();
+  const cats = getLCats(listaStore);
+  document.getElementById('prod-store').value = listaStore;
+  document.getElementById('prod-cat-sel').innerHTML = Object.keys(cats).map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('prod-name').value = '';
+  document.getElementById('addprod-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('prod-name').focus(), 200);
+}
+function closeAddProdModal() { document.getElementById('addprod-overlay').classList.remove('open'); }
+async function saveNewProducto() {
+  const store = document.getElementById('prod-store').value;
+  const cat = document.getElementById('prod-cat-sel').value;
+  const name = document.getElementById('prod-name').value.trim();
+  if (!name) { document.getElementById('prod-name').focus(); return; }
+  initListaCats();
+  if (!ST.listaCats[store][cat]) ST.listaCats[store][cat] = [];
+  if (!ST.listaCats[store][cat].includes(name)) ST.listaCats[store][cat].push(name);
+  await saveST();
+  closeAddProdModal();
+  toast(`"${name}" agregado ✓`);
+  rListaCrear();
+}
+
+function openAddCatModal() {
+  document.getElementById('cat-store').value = listaStore;
+  document.getElementById('cat-name').value = '';
+  document.getElementById('addcat-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('cat-name').focus(), 200);
+}
+function closeAddCatModal() { document.getElementById('addcat-overlay').classList.remove('open'); }
+async function saveNewCat() {
+  const store = document.getElementById('cat-store').value;
+  const name = document.getElementById('cat-name').value.trim().toUpperCase();
+  if (!name) { document.getElementById('cat-name').focus(); return; }
+  initListaCats();
+  if (!ST.listaCats[store][name]) ST.listaCats[store][name] = [];
+  await saveST();
+  closeAddCatModal();
+  toast(`Categoría "${name}" agregada ✓`);
+  listaSelectedCat = name;
+  rListaCrear();
+}
+
+// ═══ IMPORTAR EXCEL ═══
+function importarExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  // Reset input so same file can be imported again
+  input.value = '';
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      // Load SheetJS from CDN
+      if (!window.XLSX) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      initListaCats();
+      let nuevos = 0;
+
+      // Skip header row, process each row
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length < 3) continue;
+        const store  = String(row[0] || '').trim().toUpperCase();
+        const cat    = String(row[1] || '').trim().toUpperCase();
+        const prod   = String(row[2] || '').trim();
+        if (!store || !cat || !prod) continue;
+        if (store !== 'SUPER' && store !== 'PRICESMART') continue;
+
+        if (!ST.listaCats[store]) ST.listaCats[store] = {};
+        if (!ST.listaCats[store][cat]) ST.listaCats[store][cat] = [];
+        if (!ST.listaCats[store][cat].includes(prod)) {
+          ST.listaCats[store][cat].push(prod);
+          nuevos++;
+        }
+      }
+
+      await saveST();
+      toast(`✓ ${nuevos} productos nuevos importados`);
+      rListaCrear();
+    } catch(err) {
+      console.error(err);
+      toast('Error al leer el archivo');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+
+// ═══ PIN / ACCESS ═══
+const ADMIN_PIN='1234'; // Cambiá este PIN por el que quieras
+let isAdmin=false;
+
+function checkAccess(){
+  try{const r=localStorage.getItem('mesa_role');if(r==='admin')return true;}catch(e){}
+  return false;
+}
+
+function applyRole(){
+  isAdmin=checkAccess();
+  // Show/hide admin-only tabs
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display=isAdmin?'':'none';
+  });
+  // Update lock icon
+  const pb=document.getElementById('pin-btn');
+  if(pb) pb.textContent=isAdmin?'🔓':'🔐';
+  if(pb) pb.title=isAdmin?'Cerrar sesión admin':'Acceso admin';
+  // If not admin, force menu view
+  if(!isAdmin){
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    document.getElementById('view-menu').classList.add('active');
+    const menuBtn=document.querySelector('[data-view="menu"]');
+    if(menuBtn)menuBtn.classList.add('active');
+    rDia();
+  }
+}
+
+function showPinModal(){
+  document.getElementById('pin-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('pin-input').focus(),200);
+}
+
+function closePinIfBg(e){if(e.target===document.getElementById('pin-overlay'))closePinModal();}
+function closePinModal(){
+  document.getElementById('pin-overlay').classList.remove('open');
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').style.display='none';
+}
+
+function submitPin(){
+  const val=document.getElementById('pin-input').value.trim();
+  if(val===ADMIN_PIN){
+    try{localStorage.setItem('mesa_role','admin');}catch(e){}
+    closePinModal();
+    isAdmin=true;
+    applyRole();
+    // Switch to planner
+    const btn=document.querySelector('[data-view="planner"]');
+    if(btn) switchView('planner',btn);
+    toast('Acceso de administrador activado ✓');
+  } else {
+    document.getElementById('pin-error').style.display='block';
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-input').focus();
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const pi=document.getElementById('pin-input');
+  if(pi) pi.addEventListener('keydown',e=>{if(e.key==='Enter')submitPin();});
+});
+
+function logout(){
+  try{localStorage.removeItem('mesa_role');}catch(e){}
+  isAdmin=false;
+  applyRole();
+  toast('Sesión cerrada');
+}
+
+// ═══ ROUTING ═══
+let curView='menu',curSub='dia';
+function switchView(v,btn){
+  // Block non-admins from planner/recipes
+  if(!isAdmin && (v==='planner'||v==='recipes')){
+    showPinModal(); return;
+  }
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`view-${v}`).classList.add('active');
+  if(btn)btn.classList.add('active');
+  curView=v;
+  if(v==='planner')rPlanner();
+  if(v==='menu'){if(curSub==='dia')rDia();else rSemanal();}
+  if(v==='lista'){initListaCats();rListaCrear();}
+  if(v==='recipes')rRecipes();
+}
+function switchSubtab(t,btn){
+  document.querySelectorAll('.menu-subview').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.menu-subtab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`subtab-${t}`).classList.add('active');btn.classList.add('active');curSub=t;
+  if(t==='dia')rDia();else rSemanal();
+}
+
+// ═══ PLANNER ═══
+let plW=mon(new Date(TODAY));
+function plShift(d){plW=new Date(plW);plW.setDate(plW.getDate()+d*7);// ═══ INIT ═══
+(async()=>{
+  // Show loading indicator
+  document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
+  await loadFromFirebase();
+  // Prefill only if no data from Firebase
+  if(!ST.pf){
+    const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
+    s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
+    s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
+    s(2026,4,14,'alm','CARNE','Milanesa','Arroz blanco');s(2026,4,14,'cena','OTROS','Huevos en salsa blanca','Frijoles');
+    s(2026,4,15,'alm','SANDWICH','Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)','Papas fritas');s(2026,4,15,'cena','CARNE','Ensalada mediterranea con pollo','');
+    s(2026,4,16,'alm','POLLO','Pollo enrollado con tocino','Zanahoria asada con mantequilla de ajo');s(2026,4,16,'cena','CARNE','Big Mac tacos','');
+    s(2026,4,19,'alm','CARNE','Salpicon','Arroz negro');s(2026,4,19,'cena','SOPA','Sopa de tortilla con Pollo','');
+    s(2026,4,20,'alm','POLLO','Bowl de burrito de pollo','');s(2026,4,20,'cena','OTROS','Coliflor en salsa blanca','Casamiento');
+    s(2026,4,21,'alm','CARNE','Carne molida, camote, aguacate y queso cottage','');s(2026,4,21,'cena','ENSALADAS','Ensalada mediterranea con pollo','');
+    s(2026,4,22,'alm','SANDWICH','Wrap de ensalada cesar con pollo empanizado','Camote fries');s(2026,4,22,'cena','CARNE','Tomate rellenos de carne molida','');
+    s(2026,4,23,'alm','SANDWICH','Pesto chicken flat bread','');s(2026,4,23,'cena','MARISCOS','Tacos de camaron','');
+    ST.pf=true;
+    await saveST();
+  }
+  applyRole();
+  if(isAdmin) rPlanner();
+})();}
+function plToday(){plW=mon(new Date(TODAY));// ═══ INIT ═══
+(async()=>{
+  // Show loading indicator
+  document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
+  await loadFromFirebase();
+  // Prefill only if no data from Firebase
+  if(!ST.pf){
+    const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
+    s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
+    s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
+    s(2026,4,14,'alm','CARNE','Milanesa','Arroz blanco');s(2026,4,14,'cena','OTROS','Huevos en salsa blanca','Frijoles');
+    s(2026,4,15,'alm','SANDWICH','Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)','Papas fritas');s(2026,4,15,'cena','CARNE','Ensalada mediterranea con pollo','');
+    s(2026,4,16,'alm','POLLO','Pollo enrollado con tocino','Zanahoria asada con mantequilla de ajo');s(2026,4,16,'cena','CARNE','Big Mac tacos','');
+    s(2026,4,19,'alm','CARNE','Salpicon','Arroz negro');s(2026,4,19,'cena','SOPA','Sopa de tortilla con Pollo','');
+    s(2026,4,20,'alm','POLLO','Bowl de burrito de pollo','');s(2026,4,20,'cena','OTROS','Coliflor en salsa blanca','Casamiento');
+    s(2026,4,21,'alm','CARNE','Carne molida, camote, aguacate y queso cottage','');s(2026,4,21,'cena','ENSALADAS','Ensalada mediterranea con pollo','');
+    s(2026,4,22,'alm','SANDWICH','Wrap de ensalada cesar con pollo empanizado','Camote fries');s(2026,4,22,'cena','CARNE','Tomate rellenos de carne molida','');
+    s(2026,4,23,'alm','SANDWICH','Pesto chicken flat bread','');s(2026,4,23,'cena','MARISCOS','Tacos de camaron','');
+    ST.pf=true;
+    await saveST();
+  }
+  applyRole();
+  if(isAdmin) rPlanner();
+})();}
+
+function isMobile(){ return window.innerWidth <= 900; }
+
+function rPlanner(){
+  document.getElementById('pl-lbl').textContent=wkRange(plW);
+  document.getElementById('pl-month').textContent=wkMonth(plW);
+  const g=document.getElementById('pl-grid');
+  g.innerHTML='';
+
+  if(isMobile()){
+    // Mobile: day pills + single day view
+    if(plannerMobileDay<0) plannerMobileDay=0;
+    if(plannerMobileDay>4) plannerMobileDay=4;
+
+    const d=new Date(plW); d.setDate(d.getDate()+plannerMobileDay);
+    const isT=dk(d)===dk(TODAY), data=gd(d);
+
+    // Render pills
+    const pillsDiv=document.createElement('div');
+    pillsDiv.style.cssText='display:flex;gap:5px;margin-bottom:14px';
+    for(let i=0;i<5;i++){
+      const pd=new Date(plW); pd.setDate(pd.getDate()+i);
+      const isPT=dk(pd)===dk(TODAY);
+      const sel=i===plannerMobileDay;
+      const btn=document.createElement('button');
+      btn.style.cssText=`flex:1;padding:7px 4px;border-radius:14px;border:1.5px solid ${sel?'var(--ink)':isPT?'var(--sage)':'var(--border)'};background:${sel?'var(--ink)':'transparent'};color:${sel?'var(--white)':'var(--slate)'};font-family:'DM Sans',sans-serif;cursor:pointer;text-align:center;line-height:1.2;transition:all .15s`;
+      btn.innerHTML=`<span style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em">${DS[pd.getDay()].slice(0,2)}</span><span style="font-size:13px;font-weight:600">${pd.getDate()}</span>`;
+      btn.onclick=((_i)=>()=>{plannerMobileDay=_i;rPlanner();})(i);
+      pillsDiv.appendChild(btn);
+    }
+    g.appendChild(pillsDiv);
+
+    // Render single day card
+    const col=document.createElement('div');
+    col.className='day-col'+(isT?' is-today':'');
+    col.style.cssText='display:block';
+    col.innerHTML=`
+      <div class="day-head" style="display:flex;flex-direction:row;align-items:center;gap:10px;border-bottom:1px solid var(--border)">
+        <div class="day-name-sm">${DS[d.getDay()]}</div>
+        <div class="day-num-lg">${d.getDate()}</div>
+        ${isT?'<div class="today-badge">HOY</div>':''}
+      </div>
+      <div style="display:block">${pMeal(d,'alm',data.alm)}</div>
+      <div style="display:block">${pMeal(d,'cena',data.cena)}</div>`;
+    g.appendChild(col);
+
+  } else {
+    // Desktop: all 5 days in grid
+    for(let i=0;i<5;i++){
+      const d=new Date(plW);d.setDate(d.getDate()+i);
+      const isT=dk(d)===dk(TODAY),data=gd(d),col=document.createElement('div');
+      col.className='day-col'+(isT?' is-today':'');
+      col.innerHTML=`<div class="day-head"><div><div class="day-name-sm">${DS[d.getDay()]}</div><div class="day-num-lg">${d.getDate()}</div></div>${isT?'<div class="today-badge">HOY</div>':''}</div>${pMeal(d,'alm',data.alm)}${pMeal(d,'cena',data.cena)}`;
+      g.appendChild(col);
+    }
+  }
+}
+
+function pMeal(d,meal,data){
+  const key=dk(d),uid=`${key}-${meal}`;
+  const cats=Object.keys(ST.cats);
+  const cOpts=cats.map(c=>`<option value="${c}"${data.cat===c?' selected':''}>${c.charAt(0)+c.slice(1).toLowerCase()}</option>`).join('');
+  const dishes=ST.cats[data.cat]||[];
+  const dOpts=['<option value="">— seleccionar —</option>',...dishes.map(p=>`<option value="${p.n}"${data.plato===p.n?' selected':''}>${p.n}</option>`)].join('');
+  const aOpts=['<option value="">— sin acompañamiento —</option>',...ST.acomps.map(a=>`<option value="${a.n}"${data.acomp===a.n?' selected':''}>${a.n}</option>`)].join('');
+  const a2Opts=['<option value="">— sin 2do acompañamiento —</option>',...ST.acomps.map(a=>`<option value="${a.n}"${data.acomp2===a.n?' selected':''}>${a.n}</option>`)].join('');
+  const pLink=pl(data.cat,data.plato),aLink=al(data.acomp),a2Link=al(data.acomp2);
+  return`<div class="meal-block">
+    <div class="meal-lbl-row"><span style="font-size:13px">${meal==='alm'?'☀️':'🌙'}</span><span class="meal-lbl ${meal}">${meal==='alm'?'ALMUERZO':'CENA'}</span></div>
+    <div class="field-lbl">Categoría</div>
+    <div class="sel-wrap"><select onchange="onCat('${uid}','${key}','${meal}',this.value)">${cOpts}</select></div>
+    <div class="chip-${data.cat}" id="chip-${uid}" style="display:inline-block;font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;margin-bottom:6px;background:${(CC[data.cat]||{bg:'#eee'}).bg};color:${(CC[data.cat]||{c:'#555'}).c}">${data.cat.charAt(0)+data.cat.slice(1).toLowerCase()}</div>
+    <div class="field-lbl">Plato</div>
+    <div class="sel-wrap"><select id="dish-${uid}" onchange="onDish('${uid}','${key}','${meal}',this.value)">${dOpts}</select></div>
+    <div class="link-area" id="plink-${uid}">${pLink?`<a class="rpill green" href="${pLink}" target="_blank">🔗 Ver receta</a>`:data.plato?`<span class="no-recipe">Sin receta guardada</span>`:''}</div>
+    <hr class="acomp-divider">
+    <div class="field-lbl">Acompañamiento 1</div>
+    <div class="sel-wrap"><select onchange="onAcomp('${uid}','${key}','${meal}',this.value)">${aOpts}</select></div>
+    <div class="link-area" id="alink-${uid}">${aLink?`<a class="rpill amber" href="${aLink}" target="_blank">🔗 Receta acomp.</a>`:''}</div>
+    <div class="field-lbl" style="margin-top:6px">Acompañamiento 2</div>
+    <div class="sel-wrap"><select onchange="onAcomp2('${uid}','${key}','${meal}',this.value)">${a2Opts}</select></div>
+    <div class="link-area" id="a2link-${uid}">${a2Link?`<a class="rpill amber" href="${a2Link}" target="_blank">🔗 Receta acomp.</a>`:''}</div>
+  </div>`;
+}
+
+function onCat(uid,key,meal,cat){
+  ST.menu[key][meal].cat=cat;ST.menu[key][meal].plato='';saveST();
+  const ch=document.getElementById(`chip-${uid}`),c=CC[cat]||{bg:'#eee',c:'#555'};
+  ch.style.background=c.bg;ch.style.color=c.c;ch.textContent=cat.charAt(0)+cat.slice(1).toLowerCase();
+  const dishes=ST.cats[cat]||[];
+  document.getElementById(`dish-${uid}`).innerHTML=['<option value="">— seleccionar —</option>',...dishes.map(p=>`<option value="${p.n}">${p.n}</option>`)].join('');
+  document.getElementById(`plink-${uid}`).innerHTML='';
+}
+function onDish(uid,key,meal,plato){
+  ST.menu[key][meal].plato=plato;saveST();
+  const link=pl(ST.menu[key][meal].cat,plato);
+  document.getElementById(`plink-${uid}`).innerHTML=link?`<a class="rpill green" href="${link}" target="_blank">🔗 Ver receta</a>`:plato?`<span class="no-recipe">Sin receta guardada</span>`:'';
+}
+function onAcomp(uid,key,meal,acomp){
+  ST.menu[key][meal].acomp=acomp;saveST();
+  const link=al(acomp);
+  document.getElementById(`alink-${uid}`).innerHTML=link?`<a class="rpill amber" href="${link}" target="_blank">🔗 Receta acomp.</a>`:'';
+}
+function onAcomp2(uid,key,meal,acomp2){
+  ST.menu[key][meal].acomp2=acomp2;saveST();
+  const link=al(acomp2);
+  document.getElementById(`a2link-${uid}`).innerHTML=link?`<a class="rpill amber" href="${link}" target="_blank">🔗 Receta acomp.</a>`:'';
+}
+
+// ═══ MENÚ / DÍA ═══
+let diaDay=dk(TODAY);
+function rDia(){
+  const sd=new Date(diaDay.replace(/-/g,'/'));
+  document.getElementById('dia-fecha').textContent=`${sd.getDate()} de ${MN[sd.getMonth()]}`;
+  document.getElementById('dia-nombre').textContent=DN[sd.getDay()];
+  const dw=mon(new Date(sd)),nav=document.getElementById('dia-nav');
+  nav.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=new Date(dw);d.setDate(d.getDate()+i);
+    const key=dk(d),isT=key===dk(TODAY),pill=document.createElement('button');
+    pill.className='dia-pill'+(key===diaDay?' active':'')+(isT?' is-today':'');
+    pill.innerHTML=`<span style='display:block;font-size:9px;text-transform:uppercase;letter-spacing:.05em'>${DS[d.getDay()].slice(0,2)}</span><span style='font-size:13px;font-weight:600'>${d.getDate()}</span>${isT?'<span style="display:block;font-size:8px;color:var(--sage)">hoy</span>':''}`;
+    pill.onclick=((_k)=>()=>{diaDay=_k;rDia();})( key);
+    nav.appendChild(pill);
+  }
+  const data=ST.menu[diaDay]||ed();
+  document.getElementById('dia-cards').innerHTML=diaCard('ALMUERZO','alm','12:00 – 13:30',data.alm)+diaCard('CENA','cena','18:30 – 20:00',data.cena);
+}
+function diaCard(label,meal,time,data){
+  const pLink=pl(data.cat,data.plato),aLink=al(data.acomp),a2Link=al(data.acomp2||'');
+  return`<div class="dia-card">
+    <div class="dia-card-top"><div class="dia-card-lbl ${meal}">${meal==='alm'?'☀️':'🌙'} ${label}</div><div class="dia-card-time">${time}</div></div>
+    <div class="dia-card-body">
+      ${data.cat?chip(data.cat,true):''}
+      <div class="dia-dish${data.plato?'':' empty'}">${data.plato||'Sin menú definido aún'}</div>
+      ${data.acomp||data.acomp2?`<div class="dia-acomp-lbl">Acompañamiento</div>`:''}
+      ${data.acomp?`<div class="dia-acomp-val">${data.acomp}</div>`:''}
+      ${data.acomp2?`<div class="dia-acomp-val">${data.acomp2}</div>`:''}
+      <div class="dia-links">
+        ${pLink?`<a class="dia-link plato" href="${pLink}" target="_blank">🔗 Ver receta del plato</a>`:''}
+        ${aLink?`<a class="dia-link acomp" href="${aLink}" target="_blank">🔗 Receta acomp. 1</a>`:''}
+        ${a2Link?`<a class="dia-link acomp" href="${a2Link}" target="_blank">🔗 Receta acomp. 2</a>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══ MENÚ / SEMANAL ═══
+let semW=mon(new Date(TODAY));
+function semShift(d){semW=new Date(semW);semW.setDate(semW.getDate()+d*7);rSemanal();}
+function semToday(){semW=mon(new Date(TODAY));rSemanal();}
+
+function rSemanal(){
+  document.getElementById('sem-lbl').textContent=wkRange(semW);
+  document.getElementById('sem-month').textContent=wkMonth(semW);
+  const g=document.getElementById('sem-grid');g.innerHTML='';
+  for(let i=0;i<5;i++){
+    const d=new Date(semW);d.setDate(d.getDate()+i);
+    const isT=dk(d)===dk(TODAY),data=gd(d),col=document.createElement('div');
+    col.className='day-col'+(isT?' is-today':'');
+    col.innerHTML=`<div class="day-head"><div><div class="day-name-sm">${DS[d.getDay()]}</div><div class="day-num-lg">${d.getDate()}</div></div>${isT?'<div class="today-badge">HOY</div>':''}</div>${semMeal('alm',data.alm)}${semMeal('cena',data.cena)}`;
+    g.appendChild(col);
+  }
+}
+function semMeal(meal,data){
+  const pLink=pl(data.cat,data.plato),aLink=al(data.acomp),a2Link=al(data.acomp2||'');
+  return`<div class="semanal-meal">
+    <div class="semanal-mlbl ${meal}">${meal==='alm'?'☀️':'🌙'} ${meal==='alm'?'Almuerzo':'Cena'}</div>
+    ${data.cat?chip(data.cat,true):''}
+    <div class="semanal-dish${data.plato?'':' empty'}">${data.plato||'Sin definir'}</div>
+    ${data.acomp?`<div class="semanal-acomp">${data.acomp}</div>`:''}
+    ${data.acomp2?`<div class="semanal-acomp">${data.acomp2}</div>`:''}
+    <div class="semanal-links">
+      ${pLink?`<a class="slink plato" href="${pLink}" target="_blank">🔗 Receta</a>`:''}
+      ${aLink?`<a class="slink acomp" href="${aLink}" target="_blank">🔗 Acomp.1</a>`:''}
+      ${a2Link?`<a class="slink acomp" href="${a2Link}" target="_blank">🔗 Acomp.2</a>`:''}
+    </div>
+  </div>`;
+}
+
+// ═══ RECIPES ═══
+let rCat='POLLO';
+function rRecipes(){
+  const all=[...Object.keys(ST.cats),'ACOMPAÑAMIENTOS'];
+  document.getElementById('rec-cat-tabs').innerHTML=all.map(c=>`<button class="cat-tab${c===rCat?' active':''}" onclick="selCat('${c}')">${c.charAt(0)+c.slice(1).toLowerCase()}</button>`).join('');
+  const isA=rCat==='ACOMPAÑAMIENTOS',list=isA?ST.acomps:(ST.cats[rCat]||[]),col=CC[rCat];
+  const chip2=document.getElementById('rp-chip');
+  chip2.style.cssText=col?`background:${col.bg};color:${col.c}`:'background:#eee;color:#555';
+  chip2.textContent=rCat.charAt(0)+rCat.slice(1).toLowerCase();
+  document.getElementById('rp-count').textContent=`${list.length} plato${list.length!==1?'s':''}`;
+  const ul=document.getElementById('rec-list');
+  if(!list.length){ul.innerHTML='<div class="empty-list">No hay platos. ¡Agregá el primero!</div>';return;}
+  ul.innerHTML=list.map((item,i)=>`<li class="rec-item">
+    <div class="rec-item-left">
+      <div class="${item.l?'dot-green':'dot-gray'}"></div>
+      <span class="rec-name" title="${item.n}">${item.n}</span>
+      ${item.l?`<a class="rec-link-prev" href="${item.l}" target="_blank">🔗 ${dom(item.l)}</a>`:''}
+    </div>
+    <div class="rec-actions">
+      <button class="icon-btn" onclick="openEdit(${i})">✏️</button>
+      <button class="icon-btn del" onclick="delRec(${i})">🗑</button>
+    </div>
+  </li>`).join('');
+}
+function selCat(cat){rCat=cat;rRecipes();}
+function dom(url){try{const h=new URL(url).hostname.replace('www.','');return h.includes('pinterest')?'Pinterest':h.includes('tiktok')?'TikTok':h.includes('instagram')?'Instagram':h;}catch(e){return'Link';}}
+function delRec(idx){const isA=rCat==='ACOMPAÑAMIENTOS',list=isA?ST.acomps:ST.cats[rCat];if(!confirm(`¿Eliminar "${list[idx].n}"?`))return;list.splice(idx,1);saveST();rRecipes();toast('Plato eliminado');}
+
+// ═══ MODAL ═══
+let mMode='add',mIdx=-1;
+function openAddModal(){mMode='add';mIdx=-1;document.getElementById('modal-title').textContent=`Agregar plato a ${rCat.charAt(0)+rCat.slice(1).toLowerCase()}`;document.getElementById('modal-name').value='';document.getElementById('modal-link').value='';document.getElementById('modal-overlay').classList.add('open');setTimeout(()=>document.getElementById('modal-name').focus(),200);}
+function openEdit(idx){mMode='edit';mIdx=idx;const isA=rCat==='ACOMPAÑAMIENTOS',item=(isA?ST.acomps:ST.cats[rCat])[idx];document.getElementById('modal-title').textContent='Editar plato';document.getElementById('modal-name').value=item.n;document.getElementById('modal-link').value=item.l||'';document.getElementById('modal-overlay').classList.add('open');setTimeout(()=>document.getElementById('modal-name').focus(),200);}
+function closeMO(){document.getElementById('modal-overlay').classList.remove('open');}
+function closeMOIfBg(e){if(e.target===document.getElementById('modal-overlay'))closeMO();}
+function saveMO(){
+  const name=document.getElementById('modal-name').value.trim(),link=document.getElementById('modal-link').value.trim();
+  if(!name){document.getElementById('modal-name').focus();return;}
+  const isA=rCat==='ACOMPAÑAMIENTOS',list=isA?ST.acomps:ST.cats[rCat];
+  if(mMode==='add'){list.push({n:name,l:link});toast(`"${name}" agregado ✓`);}
+  else{list[mIdx]={n:name,l:link};toast('Plato actualizado ✓');}
+  saveST();closeMO();rRecipes();
+}
+document.getElementById('modal-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('modal-link').focus();});
+document.getElementById('modal-link').addEventListener('keydown',e=>{if(e.key==='Enter')saveMO();});
+
+// ═══ INIT ═══
+// ═══ INIT ═══
+(async()=>{
+  // Show loading indicator
+  document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
+  await loadFromFirebase();
+  // Prefill only if no data from Firebase
+  if(!ST.pf){
+    const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
+    s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
+    s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
+    s(2026,4,14,'alm','CARNE','Milanesa','Arroz blanco');s(2026,4,14,'cena','OTROS','Huevos en salsa blanca','Frijoles');
+    s(2026,4,15,'alm','SANDWICH','Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)','Papas fritas');s(2026,4,15,'cena','CARNE','Ensalada mediterranea con pollo','');
+    s(2026,4,16,'alm','POLLO','Pollo enrollado con tocino','Zanahoria asada con mantequilla de ajo');s(2026,4,16,'cena','CARNE','Big Mac tacos','');
+    s(2026,4,19,'alm','CARNE','Salpicon','Arroz negro');s(2026,4,19,'cena','SOPA','Sopa de tortilla con Pollo','');
+    s(2026,4,20,'alm','POLLO','Bowl de burrito de pollo','');s(2026,4,20,'cena','OTROS','Coliflor en salsa blanca','Casamiento');
+    s(2026,4,21,'alm','CARNE','Carne molida, camote, aguacate y queso cottage','');s(2026,4,21,'cena','ENSALADAS','Ensalada mediterranea con pollo','');
+    s(2026,4,22,'alm','SANDWICH','Wrap de ensalada cesar con pollo empanizado','Camote fries');s(2026,4,22,'cena','CARNE','Tomate rellenos de carne molida','');
+    s(2026,4,23,'alm','SANDWICH','Pesto chicken flat bread','');s(2026,4,23,'cena','MARISCOS','Tacos de camaron','');
+    ST.pf=true;
+    await saveST();
+  }
+  applyRole();
+  if(isAdmin) rPlanner();
+})();
+</script>
+</body>
+</html>
