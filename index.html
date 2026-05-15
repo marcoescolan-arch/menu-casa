@@ -1077,6 +1077,19 @@ async function saveNewProducto() {
   rListaCrear();
 }
 
+async function eliminarProductoCat(idx) {
+  const cats = ST.listaCats?.[listaStore];
+  if (!cats || !cats[listaSelectedCat]) return;
+  const prod = cats[listaSelectedCat][idx];
+  if (!confirm(`¿Eliminar "${prod}" de ${listaSelectedCat}?`)) return;
+  cats[listaSelectedCat].splice(idx, 1);
+  // Also remove from current lista items if selected
+  listaItems = listaItems.filter(i => !(i.name === prod && i.store === listaStore));
+  await saveST();
+  toast(`"${prod}" eliminado`);
+  rListaCrear();
+}
+
 function openAddCatModal() {
   document.getElementById('cat-store').value = listaStore;
   document.getElementById('cat-name').value = '';
