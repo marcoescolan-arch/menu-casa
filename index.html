@@ -718,13 +718,15 @@ function rListaCrear() {
   } else {
     prodEl.innerHTML = prods.map((p,i) => {
       const sel = listaItems.some(x => x.name === p && x.store === listaStore);
-      return `<div onclick="toggleProducto('${p.replace(/'/g,"\'").replace(/"/g,'&quot;')}','${listaSelectedCat}')"
-        style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:${i<prods.length-1?'1px solid var(--border)':'none'};cursor:pointer;transition:background .12s;${sel?'background:var(--sage-light)':''}"
-        onmouseover="this.style.background=this.style.background||'var(--cream)'" onmouseout="if(!${sel})this.style.background=''">
-        <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${sel?'var(--sage)':'var(--border)'};background:${sel?'var(--sage)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s">
-          ${sel?'<span style="color:white;font-size:13px;font-weight:700">✓</span>':''}
+      const pSafe = p.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      return `<div style="display:flex;align-items:center;gap:0;padding:0;border-bottom:${i<prods.length-1?'1px solid var(--border)':'none'};">
+        <div onclick="toggleProducto('${pSafe}','${listaSelectedCat}')" style="display:flex;align-items:center;gap:12px;flex:1;padding:13px 16px;cursor:pointer;${sel?'background:var(--sage-light)':''}">
+          <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${sel?'var(--sage)':'var(--border)'};background:${sel?'var(--sage)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            ${sel?'<span style="color:white;font-size:13px;font-weight:700">✓</span>':''}
+          </div>
+          <span style="font-size:14px;color:${sel?'var(--sage-dark)':'var(--ink)'};font-weight:${sel?'500':'400'}">${p}</span>
         </div>
-        <span style="font-size:14px;color:${sel?'var(--sage-dark)':'var(--ink)'};font-weight:${sel?'500':'400'}">${p}</span>
+        <button onclick="event.stopPropagation();eliminarProductoCat(${i})" style="background:none;border:none;cursor:pointer;color:#C0B8AE;font-size:16px;padding:13px 12px;flex-shrink:0;transition:color .15s" onmouseover="this.style.color='var(--terracotta)'" onmouseout="this.style.color='#C0B8AE'">🗑</button>
       </div>`;
     }).join('');
   }
