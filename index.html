@@ -1588,16 +1588,15 @@ async function saveSemEdit(){
   const plato=document.getElementById('semedit-plato').value;
   const acomp=document.getElementById('semedit-acomp').value;
   const acomp2=document.getElementById('semedit-acomp2').value;
-  // Get key/meal from multiple sources
-  const saveBtn=document.getElementById('semedit-save-btn');
-  const key = semEditKey || (saveBtn && saveBtn.dataset.key) || '';
-  const meal = semEditMeal || (saveBtn && saveBtn.dataset.meal) || '';
-  if(!key || !meal){ toast('Error: no se pudo identificar el día'); return; }
-  if(!ST.menu[key]) ST.menu[key]=ed();
-  ST.menu[key][meal]={cat,plato,acomp,acomp2};
-  await saveST();
+  if(!semEditKey || !semEditMeal){ 
+    toast('Error: key='+semEditKey+' meal='+semEditMeal); 
+    return; 
+  }
+  if(!ST.menu[semEditKey]) ST.menu[semEditKey]=ed();
+  ST.menu[semEditKey][semEditMeal]={cat,plato,acomp,acomp2};
+  try{ await saveST(); }catch(e){ console.error(e); }
   closeSemEdit();
-  toast('Menú actualizado ✓');
+  toast('✓ '+semEditKey+' '+semEditMeal+' '+plato);
   setTimeout(()=>rSemanal(), 100);
 }
 
