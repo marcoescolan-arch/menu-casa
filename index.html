@@ -275,7 +275,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- PLANNER -->
-<div id="view-planner" class="view active">
+<div id="view-planner" class="view">
   <div style="padding:28px">
     <div class="week-bar">
       <div class="week-bar-title">Menú semanal <small id="pl-month"></small></div>
@@ -291,7 +291,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- MENU -->
-<div id="view-menu" class="view">
+<div id="view-menu" class="view active">
   <div class="menu-subtabs-bar">
     <button class="menu-subtab active" onclick="switchSubtab('dia',this)">📅 Día</button>
     <button class="menu-subtab" onclick="switchSubtab('semanal',this)">📆 Semanal</button>
@@ -1319,7 +1319,24 @@ function plShift(d){plW=new Date(plW);plW.setDate(plW.getDate()+d*7);// ══�
     await saveST();
   }
   applyRole();
-  if(isAdmin) rPlanner();
+  // Always open on Menu/Dia
+  if(!isAdmin){
+    rDia();
+  } else {
+    // Admin: open on menu/dia too but with all tabs visible
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    document.getElementById('view-menu').classList.add('active');
+    const menuBtn=document.querySelector('[data-view="menu"]');
+    if(menuBtn) menuBtn.classList.add('active');
+    // Activate dia subtab
+    document.querySelectorAll('#view-menu .menu-subtab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#view-menu .menu-subview').forEach(v=>v.classList.remove('active'));
+    const diaBtn=document.querySelector('[onclick="switchSubtab('dia',this)"]');
+    if(diaBtn) diaBtn.classList.add('active');
+    document.getElementById('subtab-dia').classList.add('active');
+    rDia();
+  }
 })();}
 function plToday(){plW=mon(new Date(TODAY));// ═══ INIT ═══
 (async()=>{
@@ -1343,7 +1360,24 @@ function plToday(){plW=mon(new Date(TODAY));// ═══ INIT ═══
     await saveST();
   }
   applyRole();
-  if(isAdmin) rPlanner();
+  // Always open on Menu/Dia
+  if(!isAdmin){
+    rDia();
+  } else {
+    // Admin: open on menu/dia too but with all tabs visible
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    document.getElementById('view-menu').classList.add('active');
+    const menuBtn=document.querySelector('[data-view="menu"]');
+    if(menuBtn) menuBtn.classList.add('active');
+    // Activate dia subtab
+    document.querySelectorAll('#view-menu .menu-subtab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#view-menu .menu-subview').forEach(v=>v.classList.remove('active'));
+    const diaBtn=document.querySelector('[onclick="switchSubtab('dia',this)"]');
+    if(diaBtn) diaBtn.classList.add('active');
+    document.getElementById('subtab-dia').classList.add('active');
+    rDia();
+  }
 })();}
 
 function rPlanner(){
@@ -1632,7 +1666,24 @@ document.getElementById('modal-link').addEventListener('keydown',e=>{if(e.key===
     await saveST();
   }
   applyRole();
-  if(isAdmin) rPlanner();
+  // Always open on Menu/Dia
+  if(!isAdmin){
+    rDia();
+  } else {
+    // Admin: open on menu/dia too but with all tabs visible
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    document.getElementById('view-menu').classList.add('active');
+    const menuBtn=document.querySelector('[data-view="menu"]');
+    if(menuBtn) menuBtn.classList.add('active');
+    // Activate dia subtab
+    document.querySelectorAll('#view-menu .menu-subtab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#view-menu .menu-subview').forEach(v=>v.classList.remove('active'));
+    const diaBtn=document.querySelector('[onclick="switchSubtab('dia',this)"]');
+    if(diaBtn) diaBtn.classList.add('active');
+    document.getElementById('subtab-dia').classList.add('active');
+    rDia();
+  }
 })();
 </script>
 </body>
