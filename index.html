@@ -143,7 +143,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .rec-item{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;border-bottom:1px solid var(--border);transition:background .12s;gap:12px}
 .rec-item:last-child{border-bottom:none}.rec-item:hover{background:var(--cream)}
 .rec-item-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.rec-name{font-size:14px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec-name{font-size:14px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-break:break-word}
 .dot-green{width:7px;height:7px;border-radius:50%;background:var(--sage);flex-shrink:0}
 .dot-gray{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0}
 .rec-link-prev{font-size:11px;color:var(--sage);text-decoration:none;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
@@ -230,6 +230,11 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
   .add-btn{width:100%;justify-content:center}
   .cat-tabs{gap:6px}
   .cat-tab{padding:6px 12px;font-size:11px}
+  .rec-item{padding:10px 16px;gap:8px}
+  .rec-name{white-space:normal;font-size:13px;line-height:1.3}
+  .rec-link-prev{display:none}
+  .rec-actions .icon-btn{width:36px;height:36px}
+  .dot-green,.dot-gray{display:none}
 
   /* Modal */
   .modal{margin:16px;padding:24px}
@@ -1548,8 +1553,10 @@ function rRecipes(){
   ul.innerHTML=list.map((item,i)=>`<li class="rec-item">
     <div class="rec-item-left">
       <div class="${item.l?'dot-green':'dot-gray'}"></div>
-      <span class="rec-name" title="${item.n}">${item.n}</span>
-      ${item.l?`<a class="rec-link-prev" href="${item.l}" target="_blank">🔗 ${dom(item.l)}</a>`:''}
+      <div style="flex:1;min-width:0">
+        <div class="rec-name">${item.n}</div>
+        ${item.l?`<a class="rec-link-prev" href="${item.l}" target="_blank">🔗 ${dom(item.l)}</a>`:''}
+      </div>
     </div>
     <div class="rec-actions">
       <button class="icon-btn" onclick="openEdit(${i})">✏️</button>
