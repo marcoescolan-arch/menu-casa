@@ -1497,7 +1497,7 @@ function semMeal(meal,data,dateKey){
   return`<div class="semanal-meal">
     <div class="semanal-mlbl ${meal}" style="display:flex;align-items:center;justify-content:space-between">
       <span>${meal==='alm'?'☀️':'🌙'} ${meal==='alm'?'Almuerzo':'Cena'}</span>
-      <button onclick="openSemanalEdit('${dateKey}','${meal}')" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;color:var(--slate-light);transition:color .15s;line-height:1" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--slate-light)'" title="Editar">✏️</button>
+      <button data-key="${dateKey}" data-meal="${meal}" onclick="openSemanalEdit(this.dataset.key, this.dataset.meal)" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;color:var(--slate-light);transition:color .15s;line-height:1" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--slate-light)'" title="Editar">✏️</button>
     </div>
     ${data.cat?chip(data.cat,true):''}
     <div class="semanal-dish${data.plato?'':' empty'}">${data.plato||'Sin definir'}</div>
