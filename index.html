@@ -1488,7 +1488,8 @@ function rSemanal(){
     const d=new Date(semW);d.setDate(d.getDate()+i);
     const isT=dk(d)===dk(TODAY),data=gd(d),col=document.createElement('div');
     col.className='day-col'+(isT?' is-today':'');
-    col.innerHTML=`<div class="day-head"><div><div class="day-name-sm">${DS[d.getDay()]}</div><div class="day-num-lg">${d.getDate()}</div></div>${isT?'<div class="today-badge">HOY</div>':''}</div>${semMeal('alm',data.alm)}${semMeal('cena',data.cena)}`;
+    const dKey=dk(d);
+    col.innerHTML=`<div class="day-head"><div><div class="day-name-sm">${DS[d.getDay()]}</div><div class="day-num-lg">${d.getDate()}</div></div>${isT?'<div class="today-badge">HOY</div>':''}</div>${semMeal('alm',data.alm,dKey)}${semMeal('cena',data.cena,dKey)}`;
     g.appendChild(col);
   }
 }
@@ -1588,15 +1589,12 @@ async function saveSemEdit(){
   const plato=document.getElementById('semedit-plato').value;
   const acomp=document.getElementById('semedit-acomp').value;
   const acomp2=document.getElementById('semedit-acomp2').value;
-  if(!semEditKey || !semEditMeal){ 
-    toast('Error: key='+semEditKey+' meal='+semEditMeal); 
-    return; 
-  }
+  if(!semEditKey || !semEditMeal){ toast('Error: no se pudo identificar el día'); return; }
   if(!ST.menu[semEditKey]) ST.menu[semEditKey]=ed();
   ST.menu[semEditKey][semEditMeal]={cat,plato,acomp,acomp2};
-  try{ await saveST(); }catch(e){ console.error(e); }
+  await saveST();
   closeSemEdit();
-  toast('✓ '+semEditKey+' '+semEditMeal+' '+plato);
+  toast('Menú actualizado ✓');
   setTimeout(()=>rSemanal(), 100);
 }
 
