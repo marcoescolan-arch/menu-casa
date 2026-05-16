@@ -385,7 +385,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSemEdit()">Cancelar</button>
-      <button class="btn-save" onclick="saveSemEdit()">Guardar</button>
+      <button class="btn-save" id="semedit-save-btn" onclick="saveSemEdit()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1492,12 +1492,15 @@ function rSemanal(){
     g.appendChild(col);
   }
 }
+const _semReg = [];
 function semMeal(meal,data,dateKey){
   const pLink=pl(data.cat,data.plato),aLink=al(data.acomp),a2Link=al(data.acomp2||'');
+  const idx = _semReg.length;
+  _semReg.push({dateKey, meal});
   return`<div class="semanal-meal">
     <div class="semanal-mlbl ${meal}" style="display:flex;align-items:center;justify-content:space-between">
       <span>${meal==='alm'?'☀️':'🌙'} ${meal==='alm'?'Almuerzo':'Cena'}</span>
-      <button data-key="${dateKey}" data-meal="${meal}" onclick="openSemanalEdit(this.dataset.key, this.dataset.meal)" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;color:var(--slate-light);transition:color .15s;line-height:1" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--slate-light)'" title="Editar">✏️</button>
+      <button onclick="openSemanalEdit(${idx})" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;color:var(--slate-light);transition:color .15s;line-height:1" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--slate-light)'" title="Editar">✏️</button>
     </div>
     ${data.cat?chip(data.cat,true):''}
     <div class="semanal-dish${data.plato?'':' empty'}">${data.plato||'Sin definir'}</div>
@@ -1514,8 +1517,14 @@ function semMeal(meal,data,dateKey){
 // ═══ SEMANAL EDIT ═══
 let semEditKey='', semEditMeal='';
 
-function openSemanalEdit(dateKey, meal){
+function openSemanalEdit(idx){
+  const ref = _semReg[idx];
+  if(!ref){ toast('Error: referencia no encontrada'); return; }
+  const dateKey = ref.dateKey;
+  const meal = ref.meal;
   semEditKey=dateKey; semEditMeal=meal;
+  const saveBtn=document.getElementById('semedit-save-btn');
+  if(saveBtn){ saveBtn.dataset.key=dateKey; saveBtn.dataset.meal=meal; }
   const data=gd(new Date(dateKey.replace(/-/g,'/')));
   const mData=data[meal];
   const label=meal==='alm'?'Editar almuerzo':'Editar cena';
@@ -1540,6 +1549,9 @@ function openSemanalEdit(dateKey, meal){
   // Update chip and link
   updateSemEditChip(mData.cat);
   updateSemEditLink(mData.cat, mData.plato);
+
+  // Store key and meal directly on save button as failsafe
+  // key/meal already stored above
 
   document.getElementById('semedit-overlay').classList.add('open');
 }
@@ -1576,12 +1588,17 @@ async function saveSemEdit(){
   const plato=document.getElementById('semedit-plato').value;
   const acomp=document.getElementById('semedit-acomp').value;
   const acomp2=document.getElementById('semedit-acomp2').value;
-  if(!ST.menu[semEditKey]) ST.menu[semEditKey]=ed();
-  ST.menu[semEditKey][semEditMeal]={cat,plato,acomp,acomp2};
+  // Get key/meal from multiple sources
+  const saveBtn=document.getElementById('semedit-save-btn');
+  const key = semEditKey || (saveBtn && saveBtn.dataset.key) || '';
+  const meal = semEditMeal || (saveBtn && saveBtn.dataset.meal) || '';
+  if(!key || !meal){ toast('Error: no se pudo identificar el día'); return; }
+  if(!ST.menu[key]) ST.menu[key]=ed();
+  ST.menu[key][meal]={cat,plato,acomp,acomp2};
   await saveST();
   closeSemEdit();
-  rSemanal();
   toast('Menú actualizado ✓');
+  setTimeout(()=>rSemanal(), 100);
 }
 
 function closeSemEdit(){
