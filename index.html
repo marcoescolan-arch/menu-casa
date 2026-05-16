@@ -1297,78 +1297,9 @@ function switchSubtab(t,btn){
 
 // ═══ PLANNER ═══
 let plW=mon(new Date(TODAY));
-function plShift(d){plW=new Date(plW);plW.setDate(plW.getDate()+d*7);// ═══ INIT ═══
-(async()=>{
-  // Show loading indicator
-  document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
-  await loadFromFirebase();
-  // Prefill only if no data from Firebase
-  if(!ST.pf){
-    const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
-    s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
-    s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
-    s(2026,4,14,'alm','CARNE','Milanesa','Arroz blanco');s(2026,4,14,'cena','OTROS','Huevos en salsa blanca','Frijoles');
-    s(2026,4,15,'alm','SANDWICH','Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)','Papas fritas');s(2026,4,15,'cena','CARNE','Ensalada mediterranea con pollo','');
-    s(2026,4,16,'alm','POLLO','Pollo enrollado con tocino','Zanahoria asada con mantequilla de ajo');s(2026,4,16,'cena','CARNE','Big Mac tacos','');
-    s(2026,4,19,'alm','CARNE','Salpicon','Arroz negro');s(2026,4,19,'cena','SOPA','Sopa de tortilla con Pollo','');
-    s(2026,4,20,'alm','POLLO','Bowl de burrito de pollo','');s(2026,4,20,'cena','OTROS','Coliflor en salsa blanca','Casamiento');
-    s(2026,4,21,'alm','CARNE','Carne molida, camote, aguacate y queso cottage','');s(2026,4,21,'cena','ENSALADAS','Ensalada mediterranea con pollo','');
-    s(2026,4,22,'alm','SANDWICH','Wrap de ensalada cesar con pollo empanizado','Camote fries');s(2026,4,22,'cena','CARNE','Tomate rellenos de carne molida','');
-    s(2026,4,23,'alm','SANDWICH','Pesto chicken flat bread','');s(2026,4,23,'cena','MARISCOS','Tacos de camaron','');
-    ST.pf=true;
-    await saveST();
-  }
-  applyRole();
-  // Always open on Menu/Dia
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('view-menu').classList.add('active');
-  const menuBtn=document.querySelector('[data-view="menu"]');
-  if(menuBtn) menuBtn.classList.add('active');
-  document.querySelectorAll('#view-menu .menu-subtab').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('#view-menu .menu-subview').forEach(v=>v.classList.remove('active'));
-  document.getElementById('subtab-dia').classList.add('active');
-  const diaSubBtn=document.getElementById('subtab-dia-btn');
-  if(diaSubBtn) diaSubBtn.classList.add('active');
-  curSubtab='dia'; curView='menu';
-  rDia();
-})();}
-function plToday(){plW=mon(new Date(TODAY));// ═══ INIT ═══
-(async()=>{
-  // Show loading indicator
-  document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
-  await loadFromFirebase();
-  // Prefill only if no data from Firebase
-  if(!ST.pf){
-    const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
-    s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
-    s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
-    s(2026,4,14,'alm','CARNE','Milanesa','Arroz blanco');s(2026,4,14,'cena','OTROS','Huevos en salsa blanca','Frijoles');
-    s(2026,4,15,'alm','SANDWICH','Club sandwich (pollo, jamon, tocino, huevo, lechuga y queso)','Papas fritas');s(2026,4,15,'cena','CARNE','Ensalada mediterranea con pollo','');
-    s(2026,4,16,'alm','POLLO','Pollo enrollado con tocino','Zanahoria asada con mantequilla de ajo');s(2026,4,16,'cena','CARNE','Big Mac tacos','');
-    s(2026,4,19,'alm','CARNE','Salpicon','Arroz negro');s(2026,4,19,'cena','SOPA','Sopa de tortilla con Pollo','');
-    s(2026,4,20,'alm','POLLO','Bowl de burrito de pollo','');s(2026,4,20,'cena','OTROS','Coliflor en salsa blanca','Casamiento');
-    s(2026,4,21,'alm','CARNE','Carne molida, camote, aguacate y queso cottage','');s(2026,4,21,'cena','ENSALADAS','Ensalada mediterranea con pollo','');
-    s(2026,4,22,'alm','SANDWICH','Wrap de ensalada cesar con pollo empanizado','Camote fries');s(2026,4,22,'cena','CARNE','Tomate rellenos de carne molida','');
-    s(2026,4,23,'alm','SANDWICH','Pesto chicken flat bread','');s(2026,4,23,'cena','MARISCOS','Tacos de camaron','');
-    ST.pf=true;
-    await saveST();
-  }
-  applyRole();
-  // Always open on Menu/Dia
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('view-menu').classList.add('active');
-  const menuBtn=document.querySelector('[data-view="menu"]');
-  if(menuBtn) menuBtn.classList.add('active');
-  document.querySelectorAll('#view-menu .menu-subtab').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('#view-menu .menu-subview').forEach(v=>v.classList.remove('active'));
-  document.getElementById('subtab-dia').classList.add('active');
-  const diaSubBtn=document.getElementById('subtab-dia-btn');
-  if(diaSubBtn) diaSubBtn.classList.add('active');
-  curSubtab='dia'; curView='menu';
-  rDia();
-})();}
+function plShift(d){plW=new Date(plW);plW.setDate(plW.getDate()+d*7);rPlanner();}
+function plToday(){plW=mon(new Date(TODAY));rPlanner();}
+
 
 function rPlanner(){
   document.getElementById('pl-lbl').textContent=wkRange(plW);
