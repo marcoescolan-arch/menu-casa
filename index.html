@@ -361,6 +361,35 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 </div>
 <div class="toast" id="toast"></div>
 
+<!-- SEMANAL EDIT MODAL -->
+<div class="modal-overlay" id="semedit-overlay" onclick="if(event.target===this)closeSemEdit()">
+  <div class="modal">
+    <div class="modal-title" id="semedit-title">Editar almuerzo</div>
+    <div class="form-field">
+      <label class="form-lbl">Categoría</label>
+      <div class="sel-wrap"><select id="semedit-cat" onchange="onSemEditCat(this.value)"></select></div>
+    </div>
+    <div id="semedit-chip-wrap" style="margin-bottom:8px"></div>
+    <div class="form-field">
+      <label class="form-lbl">Plato</label>
+      <div class="sel-wrap"><select id="semedit-plato" onchange="onSemEditPlato(this.value)"></select></div>
+    </div>
+    <div id="semedit-plink" style="margin-bottom:12px"></div>
+    <div class="form-field">
+      <label class="form-lbl">Acompañamiento 1</label>
+      <div class="sel-wrap"><select id="semedit-acomp"></select></div>
+    </div>
+    <div class="form-field">
+      <label class="form-lbl">Acompañamiento 2</label>
+      <div class="sel-wrap"><select id="semedit-acomp2"></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSemEdit()">Cancelar</button>
+      <button class="btn-save" onclick="saveSemEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- CATEGORIA FULLSCREEN MODAL -->
 <div id="cat-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(26,24,20,.45);backdrop-filter:blur(2px)" onclick="if(event.target===this)closeCatDropdown()">
   <div style="position:absolute;bottom:0;left:0;right:0;background:var(--white);border-radius:20px 20px 0 0;max-height:80vh;display:flex;flex-direction:column">
@@ -1439,10 +1468,13 @@ function rSemanal(){
     g.appendChild(col);
   }
 }
-function semMeal(meal,data){
+function semMeal(meal,data,dateKey){
   const pLink=pl(data.cat,data.plato),aLink=al(data.acomp),a2Link=al(data.acomp2||'');
   return`<div class="semanal-meal">
-    <div class="semanal-mlbl ${meal}">${meal==='alm'?'☀️':'🌙'} ${meal==='alm'?'Almuerzo':'Cena'}</div>
+    <div class="semanal-mlbl ${meal}" style="display:flex;align-items:center;justify-content:space-between">
+      <span>${meal==='alm'?'☀️':'🌙'} ${meal==='alm'?'Almuerzo':'Cena'}</span>
+      <button onclick="openSemanalEdit('${dateKey}','${meal}')" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;color:var(--slate-light);transition:color .15s;line-height:1" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--slate-light)'" title="Editar">✏️</button>
+    </div>
     ${data.cat?chip(data.cat,true):''}
     <div class="semanal-dish${data.plato?'':' empty'}">${data.plato||'Sin definir'}</div>
     ${data.acomp?`<div class="semanal-acomp">${data.acomp}</div>`:''}
@@ -1453,6 +1485,83 @@ function semMeal(meal,data){
       ${a2Link?`<a class="slink acomp" href="${a2Link}" target="_blank">🔗 Acomp.2</a>`:''}
     </div>
   </div>`;
+}
+
+// ═══ SEMANAL EDIT ═══
+let semEditKey='', semEditMeal='';
+
+function openSemanalEdit(dateKey, meal){
+  semEditKey=dateKey; semEditMeal=meal;
+  const data=gd(new Date(dateKey.replace(/-/g,'/')));
+  const mData=data[meal];
+  const label=meal==='alm'?'Editar almuerzo':'Editar cena';
+  document.getElementById('semedit-title').textContent=label;
+
+  // Populate cat select
+  const cats=Object.keys(ST.cats);
+  const catSel=document.getElementById('semedit-cat');
+  catSel.innerHTML=cats.map(c=>`<option value="${c}"${mData.cat===c?' selected':''}>${c.charAt(0)+c.slice(1).toLowerCase()}</option>`).join('');
+
+  // Populate dishes
+  updateSemEditDishes(mData.cat, mData.plato);
+
+  // Populate acomps
+  const acompSel=document.getElementById('semedit-acomp');
+  const acomp2Sel=document.getElementById('semedit-acomp2');
+  const aOpts='<option value="">— sin acompañamiento —</option>'+ST.acomps.map(a=>`<option value="${a.n}"${mData.acomp===a.n?' selected':''}>${a.n}</option>`).join('');
+  const a2Opts='<option value="">— sin 2do acompañamiento —</option>'+ST.acomps.map(a=>`<option value="${a.n}"${(mData.acomp2||'')=== a.n?' selected':''}>${a.n}</option>`).join('');
+  acompSel.innerHTML=aOpts;
+  acomp2Sel.innerHTML=a2Opts;
+
+  // Update chip and link
+  updateSemEditChip(mData.cat);
+  updateSemEditLink(mData.cat, mData.plato);
+
+  document.getElementById('semedit-overlay').classList.add('open');
+}
+
+function updateSemEditDishes(cat, selectedPlato){
+  const dishes=ST.cats[cat]||[];
+  const sel=document.getElementById('semedit-plato');
+  sel.innerHTML='<option value="">— seleccionar —</option>'+dishes.map(p=>`<option value="${p.n}"${selectedPlato===p.n?' selected':''}>${p.n}</option>`).join('');
+}
+
+function updateSemEditChip(cat){
+  const c=CC[cat]||{bg:'#eee',c:'#555'};
+  document.getElementById('semedit-chip-wrap').innerHTML=`<span style="background:${c.bg};color:${c.c};border-radius:20px;font-size:11px;font-weight:600;padding:3px 10px;display:inline-block">${cat.charAt(0)+cat.slice(1).toLowerCase()}</span>`;
+}
+
+function updateSemEditLink(cat, plato){
+  const link=pl(cat,plato);
+  document.getElementById('semedit-plink').innerHTML=link?`<a class="recipe-pill green" href="${link}" target="_blank">🔗 Ver receta</a>`:plato?`<span class="no-recipe">Sin receta guardada</span>`:'';
+}
+
+function onSemEditCat(cat){
+  updateSemEditDishes(cat,'');
+  updateSemEditChip(cat);
+  updateSemEditLink(cat,'');
+}
+
+function onSemEditPlato(plato){
+  const cat=document.getElementById('semedit-cat').value;
+  updateSemEditLink(cat,plato);
+}
+
+async function saveSemEdit(){
+  const cat=document.getElementById('semedit-cat').value;
+  const plato=document.getElementById('semedit-plato').value;
+  const acomp=document.getElementById('semedit-acomp').value;
+  const acomp2=document.getElementById('semedit-acomp2').value;
+  if(!ST.menu[semEditKey]) ST.menu[semEditKey]=ed();
+  ST.menu[semEditKey][semEditMeal]={cat,plato,acomp,acomp2};
+  await saveST();
+  closeSemEdit();
+  rSemanal();
+  toast('Menú actualizado ✓');
+}
+
+function closeSemEdit(){
+  document.getElementById('semedit-overlay').classList.remove('open');
 }
 
 // ═══ RECIPES ═══
