@@ -22,6 +22,7 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
 .logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);letter-spacing:-0.3px;user-select:none}
 .logo em{color:var(--sage);font-style:normal}
+@media(max-width:900px){.logo{display:none}}
 .nav-tabs{display:flex;gap:2px;background:var(--cream);border-radius:12px;padding:4px;border:1px solid var(--border)}
 .nav-tab{padding:7px 18px;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--slate);transition:all .18s;white-space:nowrap}
 .nav-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,0.1)}
@@ -175,9 +176,9 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 
 /* ── MOBILE ── */
 @media(max-width:900px){
-  .top-bar{padding:0 12px;gap:8px}
-  .nav-tab{padding:6px 10px;font-size:12px}
-  .logo{font-size:18px}
+  .top-bar{padding:0 8px;gap:4px}
+  .nav-tabs{flex:1}
+  .nav-tab{padding:6px 8px;font-size:12px;flex:1;text-align:center}
 
   /* Planner */
   #view-planner>div{padding:16px}
