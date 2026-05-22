@@ -330,8 +330,13 @@ input,select,textarea{font-family:'DM Sans',sans-serif}
 <!-- RECIPES -->
 <div id="view-recipes" class="view">
   <div style="padding:28px;max-width:900px">
-    <div class="rec-title">Gestión de recetas</div>
-    <div class="rec-sub">Agregá, editá o eliminá platos. Los cambios se reflejan automáticamente en el planificador.</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="rec-title">Gestión de recetas</div>
+        <div class="rec-sub">Agregá, editá o eliminá platos. Los cambios se reflejan automáticamente en el planificador.</div>
+      </div>
+      <button onclick="exportarPDF()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;background:var(--terracotta);color:white;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap" onmouseover="this.style.background='#A34D38'" onmouseout="this.style.background='var(--terracotta)'">📄 Exportar PDF</button>
+    </div>
     <div class="cat-tabs" id="rec-cat-tabs"></div>
     <div class="rec-panel">
       <div class="rec-panel-head">
@@ -614,7 +619,7 @@ function loadST(){return ST;}
 
 // ═══ HELPERS ═══
 function dk(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function ed(){return{alm:{cat:'POLLO',plato:'',acomp:'',acomp2:''},cena:{cat:'POLLO',plato:'',acomp:'',acomp2:''}};}
+function ed(){return{alm:{cat:'',plato:'',acomp:'',acomp2:''},cena:{cat:'',plato:'',acomp:'',acomp2:''}};}
 function gd(d){const k=dk(d);if(!ST.menu[k])ST.menu[k]=ed();const m=ST.menu[k];if(!m.alm.hasOwnProperty('acomp2'))m.alm.acomp2='';if(!m.cena.hasOwnProperty('acomp2'))m.cena.acomp2='';return m;}
 function mon(d){const c=new Date(d),day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));return c;}
 function pl(cat,name){if(!name||!cat)return'';const f=(ST.cats[cat]||[]).find(x=>x.n===name);return f?f.l:'';}
@@ -1326,8 +1331,8 @@ function rPlanner(){
 function pMeal(d,meal,data){
   const key=dk(d),uid=`${key}-${meal}`;
   const cats=Object.keys(ST.cats);
-  const cOpts=cats.map(c=>`<option value="${c}"${data.cat===c?' selected':''}>${c.charAt(0)+c.slice(1).toLowerCase()}</option>`).join('');
-  const dishes=ST.cats[data.cat]||[];
+  const cOpts='<option value="">— categoría —</option>'+cats.map(c=>`<option value="${c}"${data.cat===c?' selected':''}>${c.charAt(0)+c.slice(1).toLowerCase()}</option>`).join('');
+  const dishes=data.cat?(ST.cats[data.cat]||[]):[];
   const dOpts=['<option value="">— seleccionar —</option>',...dishes.map(p=>`<option value="${p.n}"${data.plato===p.n?' selected':''}>${p.n}</option>`)].join('');
   const aOpts=['<option value="">— sin acompañamiento —</option>',...ST.acomps.map(a=>`<option value="${a.n}"${data.acomp===a.n?' selected':''}>${a.n}</option>`)].join('');
   const a2Opts=['<option value="">— sin 2do acompañamiento —</option>',...ST.acomps.map(a=>`<option value="${a.n}"${data.acomp2===a.n?' selected':''}>${a.n}</option>`)].join('');
@@ -1336,7 +1341,7 @@ function pMeal(d,meal,data){
     <div class="meal-lbl-row"><span style="font-size:13px">${meal==='alm'?'☀️':'🌙'}</span><span class="meal-lbl ${meal}">${meal==='alm'?'ALMUERZO':'CENA'}</span></div>
     <div class="field-lbl">Categoría</div>
     <div class="sel-wrap"><select onchange="onCat('${uid}','${key}','${meal}',this.value)">${cOpts}</select></div>
-    <div class="chip-${data.cat}" id="chip-${uid}" style="display:inline-block;font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;margin-bottom:6px;background:${(CC[data.cat]||{bg:'#eee'}).bg};color:${(CC[data.cat]||{c:'#555'}).c}">${data.cat.charAt(0)+data.cat.slice(1).toLowerCase()}</div>
+    <div id="chip-${uid}" style="display:inline-block;font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;margin-bottom:6px;background:${data.cat?(CC[data.cat]||{bg:'#eee'}).bg:'#eee'};color:${data.cat?(CC[data.cat]||{c:'#555'}).c:'#999'}">${data.cat?data.cat.charAt(0)+data.cat.slice(1).toLowerCase():'—'}</div>
     <div class="field-lbl">Plato</div>
     <div class="sel-wrap"><select id="dish-${uid}" onchange="onDish('${uid}','${key}','${meal}',this.value)">${dOpts}</select></div>
     <div class="link-area" id="plink-${uid}">${pLink?`<a class="rpill green" href="${pLink}" target="_blank">🔗 Ver receta</a>`:data.plato?`<span class="no-recipe">Sin receta guardada</span>`:''}</div>
@@ -1352,8 +1357,8 @@ function pMeal(d,meal,data){
 
 function onCat(uid,key,meal,cat){
   ST.menu[key][meal].cat=cat;ST.menu[key][meal].plato='';saveST();
-  const ch=document.getElementById(`chip-${uid}`),c=CC[cat]||{bg:'#eee',c:'#555'};
-  ch.style.background=c.bg;ch.style.color=c.c;ch.textContent=cat.charAt(0)+cat.slice(1).toLowerCase();
+  const ch=document.getElementById(`chip-${uid}`),c=cat?CC[cat]||{bg:'#eee',c:'#555'}:{bg:'#eee',c:'#999'};
+  ch.style.background=c.bg;ch.style.color=c.c;ch.textContent=cat?cat.charAt(0)+cat.slice(1).toLowerCase():'—';
   const dishes=ST.cats[cat]||[];
   document.getElementById(`dish-${uid}`).innerHTML=['<option value="">— seleccionar —</option>',...dishes.map(p=>`<option value="${p.n}">${p.n}</option>`)].join('');
   document.getElementById(`plink-${uid}`).innerHTML='';
@@ -1584,6 +1589,64 @@ function saveMO(){
 }
 document.getElementById('modal-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('modal-link').focus();});
 document.getElementById('modal-link').addEventListener('keydown',e=>{if(e.key==='Enter')saveMO();});
+
+// ═══ EXPORTAR PDF ═══
+function exportarPDF(){
+  const win = window.open('', '_blank');
+  const cats = ST.cats || {};
+  const acomps = ST.acomps || [];
+
+  let html = `<!DOCTYPE html><html lang="es"><head>
+  <meta charset="UTF-8">
+  <title>Recetas - mesa.</title>
+  <style>
+    body{font-family:Georgia,serif;max-width:800px;margin:0 auto;padding:40px;color:#1A1814}
+    h1{font-size:28px;margin-bottom:4px;color:#1A1814}
+    .subtitle{font-size:13px;color:#718096;margin-bottom:32px}
+    h2{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid #E2DDD6;color:#4A5568}
+    .plato{display:flex;align-items:baseline;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F0EDE8;gap:16px}
+    .plato-nombre{font-size:14px;color:#1A1814;flex:1}
+    .plato-link{font-size:12px;color:#5C7A5F;text-decoration:none;flex-shrink:0}
+    .sin-link{font-size:12px;color:#C0B8AE;flex-shrink:0}
+    .count{font-size:12px;color:#718096;font-weight:400;margin-left:8px}
+    .footer{margin-top:48px;font-size:11px;color:#B0A898;text-align:center}
+    @media print{body{padding:20px}.plato-link{color:#5C7A5F}}
+  </style>
+  </head><body>
+  <h1>mesa. <span style="font-size:16px;font-weight:400;color:#718096">— Libro de recetas</span></h1>
+  <div class="subtitle">Generado el ${new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})}</div>`;
+
+  // Each category
+  for(const [cat, platos] of Object.entries(cats)){
+    if(!platos || !platos.length) continue;
+    const sorted = [...platos].sort((a,b)=>a.n.localeCompare(b.n,'es'));
+    html += `<h2>${cat.charAt(0)+cat.slice(1).toLowerCase()} <span class="count">${sorted.length} platos</span></h2>`;
+    sorted.forEach(p=>{
+      html += `<div class="plato">
+        <span class="plato-nombre">${p.n}</span>
+        ${p.l ? `<a class="plato-link" href="${p.l}" target="_blank">🔗 Ver receta</a>` : '<span class="sin-link">Sin receta</span>'}
+      </div>`;
+    });
+  }
+
+  // Acompañamientos
+  if(acomps.length){
+    const sortedA = [...acomps].sort((a,b)=>a.n.localeCompare(b.n,'es'));
+    html += `<h2>Acompañamientos <span class="count">${sortedA.length} items</span></h2>`;
+    sortedA.forEach(a=>{
+      html += `<div class="plato">
+        <span class="plato-nombre">${a.n}</span>
+        ${a.l ? `<a class="plato-link" href="${a.l}" target="_blank">🔗 Ver receta</a>` : '<span class="sin-link">Sin receta</span>'}
+      </div>`;
+    });
+  }
+
+  html += `<div class="footer">mesa. — Menú del hogar</div></body></html>`;
+
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(), 500);
+}
 
 // ═══ INIT ═══
 (async()=>{
