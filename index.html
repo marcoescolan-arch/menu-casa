@@ -929,11 +929,12 @@ function rListaActiva() {
     </div>`;
   }).join('');
 
-  // Restore open cards after re-render
+  // Open all cards by default (or restore previously open ones)
   listas.forEach((_, li) => {
-    if (wasOpen[li]) {
-      const body = document.getElementById(`acard-body-${li}`);
-      const icon = document.getElementById(`acard-icon-${li}`);
+    const body = document.getElementById(`acard-body-${li}`);
+    const icon = document.getElementById(`acard-icon-${li}`);
+    // Open if was open before, or if it's a new render (wasOpen is empty)
+    if (wasOpen[li] !== false) {
       if (body) { body.classList.add('open'); activaOpenCards[li] = true; }
       if (icon) icon.textContent = '▴';
     }
