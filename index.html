@@ -586,9 +586,12 @@ const FB_URL='https://menu-casa-8f003-default-rtdb.firebaseio.com';
 let ST=defaultST();
 function defaultST(){const cats={};for(const[k,v]of Object.entries(DC))cats[k]=v.map(x=>({...x}));return{cats,acomps:DA.map(x=>({...x})),menu:{},pf:false};}
 
+let _fbLoadFailed = false; // track if the load actually failed vs returned empty
+
 async function loadFromFirebase(){
   try{
     const r=await fetch(FB_URL+'/state.json');
+    if(!r.ok){ _fbLoadFailed = true; console.error('Firebase load error: HTTP '+r.status); return; }
     const data=await r.json();
     if(data){
       ST=data;
@@ -598,7 +601,11 @@ async function loadFromFirebase(){
         if(ST.menu[k].cena&&!ST.menu[k].cena.hasOwnProperty('acomp2'))ST.menu[k].cena.acomp2='';
       }
     }
-  }catch(e){console.error('Firebase load error',e);}
+    // data === null means Firebase genuinely has no data yet - that's fine, prefill is safe
+  }catch(e){
+    _fbLoadFailed = true;
+    console.error('Firebase load error',e);
+  }
 }
 
 async function saveST(){
@@ -1654,7 +1661,12 @@ function exportarPDF(){
   // Show loading indicator
   document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--slate-light);font-size:14px">Cargando menú...</div>';
   await loadFromFirebase();
-  // Prefill only if no data from Firebase
+  // SAFETY: only prefill if Firebase load genuinely succeeded and returned no data.
+  // Never overwrite real data just because of a network error.
+  if(_fbLoadFailed){
+    document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--terracotta);font-size:14px">⚠️ No se pudo conectar a la base de datos. Revisá tu conexión y recargá la página.<br><br><button onclick="location.reload()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:white;cursor:pointer;margin-top:8px">Reintentar</button></div>';
+    return;
+  }
   if(!ST.pf){
     const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
     s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
