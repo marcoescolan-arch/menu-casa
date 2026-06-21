@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>mesa. — Menú del hogar</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
@@ -1741,6 +1744,18 @@ function exportarPDF(){
   win.document.close();
   setTimeout(()=>win.print(), 500);
 }
+
+// ═══ BFCACHE PROTECTION ═══
+// Mobile browsers (especially Android Chrome) often restore a tab from memory
+// instead of re-running JS when navigating back to it. This can leave stale
+// data in memory. Force a full reload when that happens, to guarantee we
+// always work with fresh Firebase data and never risk overwriting it.
+window.addEventListener('pageshow', function(event){
+  if(event.persisted){
+    console.warn('Page restored from bfcache - forcing reload to ensure fresh data');
+    location.reload();
+  }
+});
 
 // ═══ INIT ═══
 (async()=>{
