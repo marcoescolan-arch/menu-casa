@@ -608,9 +608,28 @@ async function loadFromFirebase(){
   }
 }
 
+let _initialLoadComplete = false; // blocks saves until first load finishes
+
 async function saveST(){
+  if(!_initialLoadComplete){
+    console.warn('saveST blocked: initial load not complete yet');
+    return;
+  }
   try{
-    // Also keep local backup
+    // Always re-fetch latest data first to avoid clobbering changes from other devices
+    let latest = null;
+    try{
+      const r = await fetch(FB_URL+'/state.json');
+      if(r.ok) latest = await r.json();
+    }catch(e){ console.error('Pre-save fetch failed', e); }
+
+    // If remote has data we don't have locally (e.g. another device saved since our last load),
+    // merge defensively: remote menu/cats/acomps/lista* take precedence for keys we don't have,
+    // but our in-memory edits win for keys we do have (since the user just edited them).
+    if(latest){
+      ST = mergeState(latest, ST);
+    }
+
     try{localStorage.setItem('mesa_v4',JSON.stringify(ST));}catch(e){}
     await fetch(FB_URL+'/state.json',{
       method:'PUT',
@@ -618,6 +637,30 @@ async function saveST(){
       body:JSON.stringify(ST)
     });
   }catch(e){console.error('Firebase save error',e);}
+}
+
+// Merge remote state with local state: local (just-edited) values win on conflict,
+// but anything present remotely and absent locally is preserved.
+function mergeState(remote, local){
+  const merged = JSON.parse(JSON.stringify(remote)); // start from remote as base
+
+  // Merge menu: combine all date keys, local meal data wins per-date if present
+  merged.menu = merged.menu || {};
+  for(const k of Object.keys(local.menu||{})){
+    merged.menu[k] = local.menu[k];
+  }
+
+  // Merge cats: local cats object wins entirely (it's edited as a whole in recipes UI)
+  if(local.cats) merged.cats = local.cats;
+  if(local.acomps) merged.acomps = local.acomps;
+
+  // Merge lista data
+  if(local.listaCats) merged.listaCats = local.listaCats;
+  if(local.listaHistorial) merged.listaHistorial = local.listaHistorial;
+  if(local.listaActiva) merged.listaActiva = local.listaActiva;
+
+  merged.pf = true;
+  return merged;
 }
 
 function loadST(){return ST;}
@@ -1665,8 +1708,9 @@ function exportarPDF(){
   // Never overwrite real data just because of a network error.
   if(_fbLoadFailed){
     document.getElementById('pl-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--terracotta);font-size:14px">⚠️ No se pudo conectar a la base de datos. Revisá tu conexión y recargá la página.<br><br><button onclick="location.reload()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:white;cursor:pointer;margin-top:8px">Reintentar</button></div>';
-    return;
+    return; // _initialLoadComplete stays false - all saves blocked until reload succeeds
   }
+  _initialLoadComplete = true;
   if(!ST.pf){
     const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
     s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
