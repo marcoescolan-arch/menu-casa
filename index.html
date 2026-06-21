@@ -721,6 +721,19 @@ function dk(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0'
 function ed(){return{alm:{cat:'',plato:'',acomp:'',acomp2:''},cena:{cat:'',plato:'',acomp:'',acomp2:''}};}
 function gd(d){const k=dk(d);if(!ST.menu[k])ST.menu[k]=ed();const m=ST.menu[k];if(!m.alm.hasOwnProperty('acomp2'))m.alm.acomp2='';if(!m.cena.hasOwnProperty('acomp2'))m.cena.acomp2='';return m;}
 function mon(d){const c=new Date(d),day=c.getDay();c.setDate(c.getDate()-day+(day===0?-6:1));return c;}
+
+// Returns the Monday to show as "current week". From Saturday onward,
+// jumps ahead to next week's Monday so weekend planning shows the upcoming week.
+function currentWeekMonday(){
+  const today=new Date(TODAY);
+  const day=today.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  if(day===6 || day===0){ // Saturday or Sunday
+    const nextMon=mon(today);
+    nextMon.setDate(nextMon.getDate()+7);
+    return nextMon;
+  }
+  return mon(today);
+}
 function pl(cat,name){if(!name||!cat)return'';const f=(ST.cats[cat]||[]).find(x=>x.n===name);return f?f.l:'';}
 function al(name){if(!name)return'';const f=ST.acomps.find(x=>x.n===name);return f?f.l:'';}
 function chip(cat,sm){const c=CC[cat]||{bg:'#eee',c:'#555'};const s=sm?'font-size:10px;padding:2px 8px':'font-size:12px;padding:4px 12px';return`<span style="background:${c.bg};color:${c.c};border-radius:20px;font-weight:600;${s};display:inline-block">${cat.charAt(0)+cat.slice(1).toLowerCase()}</span>`;}
@@ -1407,9 +1420,9 @@ function switchSubtab(t,btn){
 }
 
 // ═══ PLANNER ═══
-let plW=mon(new Date(TODAY));
+let plW=currentWeekMonday();
 function plShift(d){plW=new Date(plW);plW.setDate(plW.getDate()+d*7);rPlanner();}
-function plToday(){plW=mon(new Date(TODAY));rPlanner();}
+function plToday(){plW=currentWeekMonday();rPlanner();}
 
 
 function rPlanner(){
@@ -1518,9 +1531,9 @@ function diaCard(label,meal,time,data){
 }
 
 // ═══ MENÚ / SEMANAL ═══
-let semW=mon(new Date(TODAY));
+let semW=currentWeekMonday();
 function semShift(d){semW=new Date(semW);semW.setDate(semW.getDate()+d*7);rSemanal();}
-function semToday(){semW=mon(new Date(TODAY));rSemanal();}
+function semToday(){semW=currentWeekMonday();rSemanal();}
 
 function rSemanal(){
   document.getElementById('sem-lbl').textContent=wkRange(semW);
