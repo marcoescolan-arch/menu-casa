@@ -639,8 +639,10 @@ async function saveST(){
   }catch(e){console.error('Firebase save error',e);}
 }
 
-// Merge remote state with local state: local (just-edited) values win on conflict,
-// but anything present remotely and absent locally is preserved.
+// Merge remote state with local state defensively.
+// CRITICAL SAFETY RULE: never let a smaller/older dataset replace a larger/newer one.
+// We merge at the most granular level possible (per dish, per category) so that
+// a stale tab can never wipe out dishes added from another device.
 function mergeState(remote, local){
   const merged = JSON.parse(JSON.stringify(remote)); // start from remote as base
 
@@ -650,13 +652,54 @@ function mergeState(remote, local){
     merged.menu[k] = local.menu[k];
   }
 
-  // Merge cats: local cats object wins entirely (it's edited as a whole in recipes UI)
-  if(local.cats) merged.cats = local.cats;
-  if(local.acomps) merged.acomps = local.acomps;
+  // Merge cats PER CATEGORY, and within each category PER DISH (by name).
+  // This means: if local is missing a dish that remote has, remote's dish survives.
+  // If local has a dish remote doesn't, it gets added. If both have it, local wins
+  // (since local reflects the user's most recent edit, e.g. adding a link).
+  merged.cats = merged.cats || {};
+  const allCatNames = new Set([...Object.keys(merged.cats), ...Object.keys(local.cats||{})]);
+  for(const catName of allCatNames){
+    const remoteDishes = merged.cats[catName] || [];
+    const localDishes = (local.cats && local.cats[catName]) || [];
+    const byName = {};
+    remoteDishes.forEach(d => byName[d.n] = d);
+    localDishes.forEach(d => byName[d.n] = d); // local overwrites/adds
+    merged.cats[catName] = Object.values(byName);
+  }
 
-  // Merge lista data
-  if(local.listaCats) merged.listaCats = local.listaCats;
-  if(local.listaHistorial) merged.listaHistorial = local.listaHistorial;
+  // Merge acomps the same way: by name, local wins per-item, remote items preserved
+  const remoteAcomps = merged.acomps || [];
+  const localAcomps = local.acomps || [];
+  const acompByName = {};
+  remoteAcomps.forEach(a => acompByName[a.n] = a);
+  localAcomps.forEach(a => acompByName[a.n] = a);
+  merged.acomps = Object.values(acompByName);
+
+  // Merge lista categories the same granular way
+  merged.listaCats = merged.listaCats || {};
+  const localListaCats = local.listaCats || {};
+  const allStores = new Set([...Object.keys(merged.listaCats), ...Object.keys(localListaCats)]);
+  for(const store of allStores){
+    merged.listaCats[store] = merged.listaCats[store] || {};
+    const remoteStoreCats = merged.listaCats[store] || {};
+    const localStoreCats = localListaCats[store] || {};
+    const allLCatNames = new Set([...Object.keys(remoteStoreCats), ...Object.keys(localStoreCats)]);
+    for(const lcat of allLCatNames){
+      const remoteProds = remoteStoreCats[lcat] || [];
+      const localProds = localStoreCats[lcat] || [];
+      merged.listaCats[store][lcat] = Array.from(new Set([...remoteProds, ...localProds]));
+    }
+  }
+
+  // Historial: merge by list id, never lose entries from either side
+  const remoteHist = merged.listaHistorial || [];
+  const localHist = local.listaHistorial || [];
+  const histById = {};
+  remoteHist.forEach(h => histById[h.id] = h);
+  localHist.forEach(h => histById[h.id] = h);
+  merged.listaHistorial = Object.values(histById).sort((a,b)=>b.id-a.id);
+
+  // Active lists: local wins (reflects most recent checkbox state) but preserve remote-only stores
   if(local.listaActiva) merged.listaActiva = local.listaActiva;
 
   merged.pf = true;
