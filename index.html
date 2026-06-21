@@ -1711,7 +1711,13 @@ function exportarPDF(){
     return; // _initialLoadComplete stays false - all saves blocked until reload succeeds
   }
   _initialLoadComplete = true;
-  if(!ST.pf){
+  // SAFETY: never prefill if there's ANY real data already, regardless of pf flag.
+  // pf could be missing/false due to a corrupted or partial write, but if menu/cats
+  // already have real content, prefilling would destroy it.
+  const hasRealMenu = ST.menu && Object.keys(ST.menu).length > 0;
+  const hasRealCats = ST.cats && Object.values(ST.cats).some(arr => Array.isArray(arr) && arr.length > 0);
+  const hasAnyRealData = hasRealMenu || hasRealCats;
+  if(!ST.pf && !hasAnyRealData){
     const s=(y,m,d,ml,cat,p,a)=>{const k=dk(new Date(y,m,d));if(!ST.menu[k])ST.menu[k]=ed();ST.menu[k][ml]={cat,plato:p,acomp:a,acomp2:''};};
     s(2026,4,12,'alm','CERDO','Cerdo 3','Arroz blanco japones');s(2026,4,12,'cena','POLLO','','');
     s(2026,4,13,'alm','POLLO','','');s(2026,4,13,'cena','SANDWICH','','');
