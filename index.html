@@ -1493,7 +1493,15 @@ function onAcomp2(uid,key,meal,acomp2){
 }
 
 // ═══ MENÚ / DÍA ═══
-let diaDay=dk(TODAY);
+// If today is Sat/Sun, default Menu/Dia to next Monday since the week view is Mon-Fri only.
+function defaultDiaDay(){
+  const day=TODAY.getDay();
+  if(day===6 || day===0){
+    return dk(currentWeekMonday());
+  }
+  return dk(TODAY);
+}
+let diaDay=defaultDiaDay();
 function rDia(){
   const sd=new Date(diaDay.replace(/-/g,'/'));
   document.getElementById('dia-fecha').textContent=`${sd.getDate()} de ${MN[sd.getMonth()]}`;
